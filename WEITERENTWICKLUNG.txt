@@ -1,0 +1,15 @@
+Übergabe für einen anderen PC — Hörbuch 0.3.0-private
+
+Mit GitHub: Ein privates Repository anlegen und nur den Projektordner tidalbooks-prototype hochladen. Auf dem anderen PC klonen und diesen Ordner in Codex öffnen. .gitignore schließt Build-Verzeichnisse, lokale Einstellungen, APKs und Schlüssel aus. Das separate Buildschlüssel-Archiv niemals in Git hochladen. Der Git-Verlauf enthält den Quellcode; den bisherigen Codex-Chatverlauf ersetzt er nicht. AGENTS.md und diese Datei enthalten dafür den technischen Übergabestand.
+
+1. Quellarchiv entpacken und den Ordner tidalbooks-prototype in Codex als lokales Projekt öffnen.
+2. Android Studio installieren, SDK-Plattform 35 und Build-Tools 35.0.0 auswählen. JDK 17 verwenden. Der Gradle-Wrapper lädt Gradle 8.13 selbst. Internet ist zum ersten Abhängigkeitsabruf nötig.
+3. SDK in local.properties konfigurieren, zum Beispiel sdk.dir=C:/Users/NAME/AppData/Local/Android/Sdk. Keine lokalen T:-Laufwerksaliase vom alten PC übernehmen.
+4. Für Updates der bestehenden Handyinstallation unbedingt den bisherigen Buildschlüssel verwenden. Er liegt separat im privaten Archiv TIDAL-Hoerbuch-Buildschluessel.zip. Nach sicherem Kopieren beispielsweise debug.storeFile=C:/sicherer-Ordner/probe-debug.jks in local.properties eintragen. Alias androiddebugkey, Schlüssel-/Storepasswort android. Das ist ein privater Entwicklungsschlüssel; nicht ins Git-Repository aufnehmen.
+5. Aus dem Projektordner: gradlew.bat :app:assembleDebug :app:testDebugUnitTest :app:lintDebug (Windows) bzw. ./gradlew unter macOS/Linux. Für Gerätetests: :app:connectedDebugAndroidTest.
+6. Pixel per USB anschließen, USB-Debugging für den neuen PC bestätigen und APK per adb install -r installieren. Nicht vorher deinstallieren oder App-Daten löschen: Bibliothek, Lesezeichen und TIDAL-Anmeldung bleiben auf dem Handy.
+7. Den neuen Codex-Chat bitten, zuerst AGENTS.md, README.md, BUILD-RESULT.txt und docs/VERIFICATION.md zu lesen.
+
+Status: Der alternative TIDAL-Gerätezugang spielt mit dem freigegebenen Konto FULL. Room-Bibliothek, Fortschritt pro Buch, Lesezeichen, persistente Einschlafsitzungen, Medienbenachrichtigung und Material You sind implementiert. 31 JVM-Tests und fünf Android-Room-Tests bestanden; Android Lint ohne Fehler. Reale Telefonanrufe, mehrere Bluetooth-Geräte, längerer Batteriesparmodus und Netzverlust während Pufferung noch manuell prüfen.
+
+Der Chatverlauf allein ersetzt die lokalen Dateien nicht. Fortschritt und Kontotokens sind keine PC-Projektdateien, sondern bleiben im App-Speicher des Pixel. Es werden keine Kontotokens oder privaten Developer-Secrets für die PC-Übergabe exportiert.

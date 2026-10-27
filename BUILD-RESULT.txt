@@ -1,0 +1,51 @@
+TIDAL Hörbuch — private Androidapp / Build-Ergebnis
+Datum: 2026-10-28 (Europe/Berlin)
+Version: 0.3.0-private (8)
+Paket: de.tidalbooks.prototype
+
+assembleDebug und assembleDebugAndroidTest: ERFOLGREICH
+JVM-Tests: 31, 0 Fehler, 0 fehlgeschlagene Tests
+Android-Room-Tests: 5, 0 Fehler (Pixel 9 Pro, API 37; isolierte Testdatenbank)
+Android Lint: 0 Fehler, 24 Warnungen
+Warnungen betreffen verfügbare neuere Bibliotheks-/SDK-Versionen und KTX-Stil.
+Installation der abschließenden APK auf dem Pixel: ERFOLGREICH
+Bestehende Anmeldung und Bibliothek nach Update erhalten.
+
+Implementiert:
+Room-Bibliothek mit Metadaten, Disc-/Trackreihenfolge und Statusfiltern;
+dauerhafter Track-ID-/Millisekunden-Hörstand je Buch, Wiederherstellung pausiert;
+Lesezeichen anlegen, benennen, löschen, anspringen unter Erhalt von Play/Pause;
+Minutentimer, Trackende, Verlängern, Abbrechen, persistenter Einschlafanker;
+monotone Frist mit Boot-Zähler, kein Audio-Autostart nach Neustart;
+Media3 MediaStyle-Benachrichtigung mit Cover, Titel, Play/Pause und ±30 Sekunden;
+Material You, dynamische Systemfarben, hell/dunkel, adaptive/themed App-Icons.
+
+Geräteprüfungen:
+Einmaliger Import des bisherigen Hörstands erfolgreich.
+Lesezeichen auf Pixel angelegt/benannt und pausiert exakt bei 2755 ms angesprungen.
+Nach force-stop: Hörstand und Lesezeichen wiederhergestellt, kein Autoplay.
+Reguläre Pause/Neustart: beobachtete Abweichung 148 ms.
+Prozessabbruch während FULL-Wiedergabe: Verlust 1609 ms (< 5 Sekunden).
+Ein-Minuten-Timer nach Prozessneustart weitergezählt; Anker nach Ablauf erhalten.
+Trackende-Timer: gleicher Track, bei 131506 ms pausiert, kein Folgeabschnitt.
+MediaStyle + MediaSession-Token + drei Aktionen im Androidsystem nachgewiesen.
+Medientaste PAUSE funktioniert; Oberfläche auf dem Pixel visuell geprüft.
+Die abschließende Provider-Anpassung ordnet die kompakten Tasten auch für ältere
+Androidversionen; kein physisches älteres Gerät getestet.
+
+Vorheriger Integrationsnachweis bleibt gültig:
+Alternativer TIDAL-Zugang FULL, hörbar über eine Minute vom Nutzer bestätigt;
+Positionssprung, automatischer Trackwechsel und Minutentimer mit Bildschirm aus.
+Keine Kontotokens oder signierten Stream-URLs zum Desktop exportiert.
+Persönliches Developer-Client-Secret nicht in Projekt oder APK-Konfiguration.
+
+Noch manuell zu prüfen: echter Telefonanruf, weitere Bluetooth-/Kopfhörer,
+längerer Batteriesparmodus, Netzverlust während Pufferung. Boot-Regel durch
+Unit-/Android-Datenbanktests geprüft, kein physischer Geräteneustart ausgeführt.
+
+APK: TIDAL-Hoerbuch.apk
+Signatur: bisheriger lokaler Android-Entwicklungsschlüssel
+SHA-256: fdbe29e028851b92599c9d235e3d76b7afd5a41c2516031526941027d9fe1a72
+Quellarchiv: TIDAL-Hoerbuch-Quellprojekt.zip (ohne Schlüssel/local.properties)
+PC-Übergabe: WEITERENTWICKLUNG.txt; Buildschlüssel separat privat mitnehmen.
+Buildumgebung: JDK 17, Gradle 8.13, Android SDK 35 / Build-Tools 35.0.0.
