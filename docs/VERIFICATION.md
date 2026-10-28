@@ -238,3 +238,19 @@ Eine erneute reale Decoder-Rückforderung durch Android ist nicht deterministisc
 erzwingbar; die Recovery-Entscheidungen sind durch Regressionstests abgesichert.
 APK: `TIDAL-Hoerbuch.apk`
 SHA-256: 19999ea5930b479115e818e4d685d6db658c968feb71d93e5243a74db16fb5f8
+
+
+28.10.2026 – Bibliotheksansichten 0.3.3-private (versionCode 11)
+Ansichtssymbol neben Suche/Sortierung schaltet zwischen bestehenden Kacheln und
+kompakten Buchzeilen um. Auswahl lokal in library-view/listView gespeichert;
+Suche, Filter, Sortierung und Weiterhören bleiben gemeinsam. Die Liste zeigt
+Cover, Titel, Autor, Hörstatus, Restzeit, Fortschritt und Optionsmenü. Öffnen
+startet kein Audio. Keine Änderung an Wiedergabe, Hörständen oder Room-Schema.
+Buildprüfungen assembleDebug, assembleDebugAndroidTest, testDebugUnitTest und
+lintDebug erfolgreich; 57 JVM-Tests bestanden, Android Lint ohne Fehler.
+Fünf gezielte Pixel-UI-Tests bestanden: zwei neue Tests für Umschalten,
+Wiederherstellung der Ansicht, Öffnen ohne Autoplay und Autorensuche; drei
+bestehende Tests für Suche, Einstieg und Abschnittsspulen mit großer Schrift.
+Ursprüngliche App mit bisherigem Schlüssel auf dem Pixel aktualisiert.
+Listenansicht mit echten Büchern visuell geprüft; nach force-stop/Neustart
+weiterhin Listenansicht. Testdatenbank unverändert, keine Nutzerdaten gelöscht.

@@ -46,6 +46,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -216,13 +217,14 @@ internal fun LibraryScreen(s: ProbeState, modifier: Modifier, onOpen: (LibraryBo
     var query by rememberSaveable { mutableStateOf("") }
     var searchExpanded by rememberSaveable { mutableStateOf(false) }
     val prefs = LocalContext.current.getSharedPreferences("library-view", android.content.Context.MODE_PRIVATE)
+    var listView by rememberSaveable { mutableStateOf(prefs.getBoolean("listView", false)) }
     var sortName by rememberSaveable { mutableStateOf(prefs.getString("sort", BookSort.LAST_PLAYED.name)!!) }
     val sort = BookSort.entries.firstOrNull { it.name == sortName } ?: BookSort.LAST_PLAYED
     var sortMenu by remember { mutableStateOf(false) }
     val books = remember(s.books, query, filter, sort) { filterBooks(s.books, query, filter, sort) }
     val continueBook = s.books.filter { !it.completed && it.elapsedMs > 0 }.maxByOrNull { it.lastPlayedAt }
     val fontScale = LocalDensity.current.fontScale
-    LazyVerticalGrid(columns = GridCells.Adaptive((156 * fontScale.coerceAtLeast(1f)).dp),modifier = modifier.fillMaxSize(),
+    LazyVerticalGrid(columns = if (listView) GridCells.Fixed(1) else GridCells.Adaptive((156 * fontScale.coerceAtLeast(1f)).dp),modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(start = 20.dp,end = 20.dp,top = 8.dp,bottom = 100.dp),
         horizontalArrangement = Arrangement.spacedBy(14.dp),verticalArrangement = Arrangement.spacedBy(18.dp)) {
         if (!s.libraryReady) item(key = "loading",span = { GridItemSpan(maxLineSpan) }) { LinearProgressIndicator(Modifier.fillMaxWidth()) }
@@ -246,6 +248,14 @@ internal fun LibraryScreen(s: ProbeState, modifier: Modifier, onOpen: (LibraryBo
         if (s.books.isNotEmpty()) item(key = "search",span = { GridItemSpan(maxLineSpan) }) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    IconToggleButton(checked = listView, onCheckedChange = {
+                        listView = it
+                        prefs.edit().putBoolean("listView", it).apply()
+                    }, modifier = Modifier.semantics { stateDescription = if (listView) "Listenansicht" else "Kachelansicht" }) {
+                        Icon(if (listView) Icons.Rounded.GridView else Icons.AutoMirrored.Rounded.ViewList,
+                            if (listView) "Kachelansicht anzeigen" else "Listenansicht anzeigen",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
                     IconButton(onClick = {
                         searchExpanded = !searchExpanded
                         if (!searchExpanded) query = ""
@@ -277,30 +287,66 @@ internal fun LibraryScreen(s: ProbeState, modifier: Modifier, onOpen: (LibraryBo
             }
         }
         items(books,key = { "book:${it.id}" }) { book ->
-            var menu by remember { mutableStateOf(false) }
-            val interactions = remember { MutableInteractionSource() }
-            Column(Modifier.animateItem().fillMaxWidth().pressScale(interactions)
-                .shadow(2.dp,RoundedCornerShape(24.dp))
-                .clip(RoundedCornerShape(24.dp)).background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                .clickable(interactionSource = interactions,indication = ripple()) { onOpen(book,false) }.padding(12.dp)) {
-                Box {
-                    BookArtwork(book.coverUrl,Modifier.fillMaxWidth().aspectRatio(1f))
-                    if (book.completed) Surface(color = MaterialTheme.colorScheme.primaryContainer,shape = CircleShape,modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp)) {
-                        Icon(Icons.Rounded.Check,null,Modifier.padding(6.dp).size(18.dp))
-                    }
-                }
-                Row(Modifier.fillMaxWidth().padding(top = 12.dp),verticalAlignment = Alignment.Top) {
-                    Text(book.title,Modifier.weight(1f),style = MaterialTheme.typography.titleSmall,maxLines = 3,overflow = TextOverflow.Ellipsis)
+            if (listView) {
+                BookListRow(book, s.showPlaybackWave && s.album?.id == book.id,
+                    Modifier.animateItem().testTag("library-list-${book.id}"),
+                    onOpen = { onOpen(book, false) }, onRemove = { onRemove(book) })
+            } else {
+                var menu by remember { mutableStateOf(false) }
+                val interactions = remember { MutableInteractionSource() }
+                Column(Modifier.animateItem().testTag("library-grid-${book.id}").fillMaxWidth().pressScale(interactions)
+                    .shadow(2.dp,RoundedCornerShape(24.dp))
+                    .clip(RoundedCornerShape(24.dp)).background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                    .clickable(interactionSource = interactions,indication = ripple()) { onOpen(book,false) }.padding(12.dp)) {
                     Box {
-                        IconButton(onClick = { menu = true },modifier = Modifier.size(48.dp)) { Icon(Icons.Rounded.MoreVert,"Optionen für ${book.title}",Modifier.size(20.dp)) }
-                        DropdownMenu(expanded = menu,onDismissRequest = { menu = false }) {
-                            DropdownMenuItem(text = { Text("Aus Bibliothek entfernen") },onClick = { menu = false; onRemove(book) },leadingIcon = { Icon(Icons.Rounded.DeleteOutline,null) })
+                        BookArtwork(book.coverUrl,Modifier.fillMaxWidth().aspectRatio(1f))
+                        if (book.completed) Surface(color = MaterialTheme.colorScheme.primaryContainer,shape = CircleShape,modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp)) {
+                            Icon(Icons.Rounded.Check,null,Modifier.padding(6.dp).size(18.dp))
                         }
                     }
+                    Row(Modifier.fillMaxWidth().padding(top = 12.dp),verticalAlignment = Alignment.Top) {
+                        Text(book.title,Modifier.weight(1f),style = MaterialTheme.typography.titleSmall,maxLines = 3,overflow = TextOverflow.Ellipsis)
+                        Box {
+                            IconButton(onClick = { menu = true },modifier = Modifier.size(48.dp)) { Icon(Icons.Rounded.MoreVert,"Optionen für ${book.title}",Modifier.size(20.dp)) }
+                            DropdownMenu(expanded = menu,onDismissRequest = { menu = false }) {
+                                DropdownMenuItem(text = { Text("Aus Bibliothek entfernen") },onClick = { menu = false; onRemove(book) },leadingIcon = { Icon(Icons.Rounded.DeleteOutline,null) })
+                            }
+                        }
+                    }
+                    Text(if (book.completed) "Beendet" else if (book.elapsedMs > 0) "${(book.fraction*100).toInt()} % · ${durationLabel(book.durationMs-book.elapsedMs)} übrig" else durationLabel(book.durationMs),
+                        style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.onSurfaceVariant,modifier = Modifier.padding(top = 8.dp))
+                    if (book.elapsedMs > 0) SoftProgress(value = book.fraction,playing = s.showPlaybackWave && s.album?.id == book.id,modifier = Modifier.fillMaxWidth().padding(top = 12.dp,bottom = 4.dp).height(12.dp))
                 }
-                Text(if (book.completed) "Beendet" else if (book.elapsedMs > 0) "${(book.fraction*100).toInt()} % · ${durationLabel(book.durationMs-book.elapsedMs)} übrig" else durationLabel(book.durationMs),
-                    style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.onSurfaceVariant,modifier = Modifier.padding(top = 8.dp))
-                if (book.elapsedMs > 0) SoftProgress(value = book.fraction,playing = s.showPlaybackWave && s.album?.id == book.id,modifier = Modifier.fillMaxWidth().padding(top = 12.dp,bottom = 4.dp).height(12.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun BookListRow(book: LibraryBook, playing: Boolean, modifier: Modifier,
+    onOpen: () -> Unit, onRemove: () -> Unit) {
+    var menu by remember { mutableStateOf(false) }
+    Surface(onClick = onOpen, modifier = modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh) {
+        Row(Modifier.padding(start = 14.dp, top = 14.dp, end = 4.dp, bottom = 14.dp),
+            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+            BookArtwork(book.coverUrl, Modifier.size(72.dp))
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                Text(book.title, style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                if (book.author.isNotBlank()) Text(book.author, style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Text(if (book.completed) "Beendet" else if (book.elapsedMs > 0)
+                    "${(book.fraction*100).toInt()} % · ${durationLabel(book.durationMs-book.elapsedMs)} übrig"
+                    else "Nicht begonnen · ${durationLabel(book.durationMs)}",
+                    style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (book.elapsedMs > 0) SoftProgress(book.fraction, Modifier.fillMaxWidth().height(12.dp), playing)
+            }
+            Box {
+                IconButton(onClick = { menu = true }) { Icon(Icons.Rounded.MoreVert, "Optionen für ${book.title}") }
+                DropdownMenu(menu, { menu = false }) {
+                    DropdownMenuItem(text = { Text("Aus Bibliothek entfernen") },
+                        onClick = { menu = false; onRemove() }, leadingIcon = { Icon(Icons.Rounded.DeleteOutline, null) })
+                }
             }
         }
     }

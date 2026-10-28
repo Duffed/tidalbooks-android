@@ -38,3 +38,7 @@ keine Unterdrückung echter Netzwerk-/Kontofehler. 57 JVM-Tests und drei Pixel-G
 bestanden, Build/Lint ohne Fehler. Ursprüngliche App mit bisherigem Schlüssel auf
 versionCode 10 aktualisiert. Hörbuch Test hat einen anderen Signaturschlüssel und
 bleibt separat. Kein Zurücksetzen der App-Daten; Details im Prüfprotokoll.
+
+0.3.3: Kachel-/Listenansicht über Symbol neben Suche/Sortierung; Wahl bleibt nach
+Neustart erhalten. 57 JVM-Tests und fünf gezielte Pixel-UI-Tests bestanden,
+Build/Lint erfolgreich. Ursprüngliche App aktualisiert; kein Room-Schemawechsel.

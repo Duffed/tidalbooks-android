@@ -1,6 +1,6 @@
 # TIDAL Hörbuch für Android
 
-Private Androidapp mit lokaler Hörbibliothek, gespeichertem Hörfortschritt pro Buch, Lesezeichen, Einschlaftimer und Material-You-Oberfläche. Version **0.3.2-private**, Android 8 oder neuer. Die alternative TIDAL-Anmeldung und vollständige Wiedergabe wurden auf dem angeschlossenen Pixel 9 Pro nachgewiesen. Es gibt keinen eigenen Server oder zusätzlichen App-Account.
+Private Androidapp mit lokaler Hörbibliothek, gespeichertem Hörfortschritt pro Buch, Lesezeichen, Einschlaftimer und Material-You-Oberfläche. Version **0.3.3-private**, Android 8 oder neuer. Die alternative TIDAL-Anmeldung und vollständige Wiedergabe wurden auf dem angeschlossenen Pixel 9 Pro nachgewiesen. Es gibt keinen eigenen Server oder zusätzlichen App-Account.
 
 ## Verwendung
 
@@ -106,3 +106,12 @@ Beim Start schwingt die Wellenhöhe weich aus einer geraden Linie ein. Ein gemei
 Der am Pixel beobachtete TIDAL-Code `-1:3:4006` bezeichnet zurückgeforderte Decoder-Ressourcen (Media3 `ERROR_CODE_DECODING_RESOURCES_RECLAIMED`), keinen fehlenden Abschnitt. Während Pause wird der ungültige Decoder zurückgesetzt und beim nächsten bewussten Start neu geladen. Bei angeforderter Wiedergabe erfolgt höchstens ein automatischer Neuaufbau am selben Track/Offset. Wiederholte Decoderfehler sowie echte Netzwerk-/Kontofehler bleiben sichtbar. Keine automatische Wiedergabe im Pausenzustand und kein Überspringen von Abschnitten.
 
 Referenz: https://developer.android.com/reference/androidx/media3/common/PlaybackException#ERROR_CODE_DECODING_RESOURCES_RECLAIMED
+
+
+## Kachel- und Listenansicht (0.3.3)
+
+In der Bibliothek wechselt das Ansichtssymbol neben Suche und Sortierung zwischen
+Kacheln und Liste. Die Auswahl bleibt nach App-Neustarts erhalten. Die Listenansicht
+zeigt Cover, Titel, Autor, Hörstatus, Restzeit und Fortschritt. Antippen öffnet das Buch
+pausiert; das Optionsmenü erlaubt weiterhin das Entfernen mit Bestätigung. Suche,
+Statusfilter, Sortierung und „Weiterhören“ funktionieren in beiden Ansichten.
