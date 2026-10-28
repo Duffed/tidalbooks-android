@@ -19,8 +19,8 @@ android {
         manifestPlaceholders["appLabel"] = if (separateApp) "Hörbuch Test" else "@string/app_name"
         minSdk = 26
         targetSdk = 35
-        versionCode = 12
-        versionName = if (separateApp) "0.4.0-private-test" else "0.4.0-private"
+        versionCode = 19
+        versionName = if (separateApp) "0.4.7-private-test" else "0.4.7-private"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "TIDAL_CLIENT_ID", quoted(local.getProperty("tidal.clientId", "WE3EnCGIVO57t7U0")))
         buildConfigField("String", "TIDAL_SCOPES", quoted(local.getProperty("tidal.scopes", "")))

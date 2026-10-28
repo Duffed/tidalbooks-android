@@ -42,6 +42,7 @@ import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -62,8 +63,6 @@ import java.util.Date
 import java.util.Locale
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 
@@ -78,7 +77,7 @@ internal fun durationLabel(ms: Long): String {
 }
 
 @Composable
-fun LibraryApp(s: ProbeState, playback: PlaybackProbe, sharedInput: String, shareNonce: Int, openPlayerNonce: Int, nightModeNonce: Int = 0) {
+fun LibraryApp(s: ProbeState, playback: PlaybackProbe, sharedInput: String, shareNonce: Int, openPlayerNonce: Int) {
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var playerOpen by rememberSaveable { mutableStateOf(false) }
     var sheet by rememberSaveable { mutableStateOf<String?>(null) }
@@ -87,14 +86,12 @@ fun LibraryApp(s: ProbeState, playback: PlaybackProbe, sharedInput: String, shar
     var rename by remember { mutableStateOf<StoredBookmark?>(null) }
     var remove by remember { mutableStateOf<LibraryBook?>(null) }
     var restart by remember { mutableStateOf(false) }
-    var nightOpen by rememberSaveable { mutableStateOf(false) }
     val snackbar = remember { SnackbarHostState() }
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
     val scope = rememberCoroutineScope()
     LaunchedEffect(shareNonce) { if (shareNonce > 0 && sharedInput.isNotBlank()) { link = sharedInput; sheet = "add" } }
     LaunchedEffect(openPlayerNonce) { if (openPlayerNonce > 0) playerOpen = true }
-    LaunchedEffect(nightModeNonce) { if (nightModeNonce > 0) nightOpen = true }
     LaunchedEffect(s.books,s.busy,importingId) {
         if (importingId != null && !s.busy && s.books.any { it.id == importingId }) {
             importingId = null; sheet = null; playerOpen = true
@@ -117,9 +114,14 @@ fun LibraryApp(s: ProbeState, playback: PlaybackProbe, sharedInput: String, shar
     var rootPosition by remember { mutableStateOf(Offset.Zero) }
     Box(Modifier.fillMaxSize().onGloballyPositioned { rootPosition = it.positionInRoot() }) {
         val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-        Scaffold(modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-            topBar = { LargeTopAppBar(title = { Text(listOf("Bibliothek","Lesezeichen","Einstellungen")[tab],fontWeight = FontWeight.SemiBold) },
-                actions = { if (tab == 0) IconButton(onClick = { sheet = "add" }) { Icon(Icons.Rounded.Add,"Hörbuch hinzufügen") } },scrollBehavior = scrollBehavior) },
+        Scaffold(modifier = if (tab == 0) Modifier else Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+            topBar = {
+                if (tab == 0) TopAppBar(
+                    title = { Text("Bibliothek",style = MaterialTheme.typography.headlineMedium,fontWeight = FontWeight.SemiBold) })
+                else LargeTopAppBar(
+                    title = { Text(listOf("Bibliothek","Lesezeichen","Einstellungen")[tab],fontWeight = FontWeight.SemiBold) },
+                    scrollBehavior = scrollBehavior)
+            },
             bottomBar = {
                 Column {
                     if (s.album != null) Spacer(Modifier.fillMaxWidth().height(89.dp)
@@ -137,7 +139,7 @@ fun LibraryApp(s: ProbeState, playback: PlaybackProbe, sharedInput: String, shar
                         0 -> LibraryScreen(s,Modifier.padding(padding),openBook,{ sheet = "add" },{ remove = it },{ tab = 2 })
                         1 -> BookmarkScreen(s.bookmarks,Modifier.padding(padding),onOpen = { playback.openBookmark(it); playerOpen = true },
                             onRename = { rename = it },onDelete = playback::deleteBookmark)
-                        else -> SettingsScreen(s,Modifier.padding(padding),playback) { nightOpen = true }
+                        else -> SettingsScreen(s,Modifier.padding(padding),playback)
                     }
                 }
             }
@@ -152,7 +154,7 @@ fun LibraryApp(s: ProbeState, playback: PlaybackProbe, sharedInput: String, shar
                 PlayerScreen(s,onBack = { playerOpen = false },onPlay = toggle,onSkip = playback::skip,
                     onSeek = playback::seekAbsolute,onBookmark = { playback.addBookmark(); haptic.performHapticFeedback(HapticFeedbackType.LongPress) },
                     onTimer = { sheet = "timer" },onChapters = { sheet = "chapters" },onMarks = { sheet = "marks" },
-                    onFinished = playback::markCompleted,onRestart = { restart = true },onHistory = { sheet = "history" },onUndo = { s.history.firstOrNull { it.bookId == s.album?.id }?.let(playback::restoreHistory) },onRetry = playback::retryPlayback,snackbar = snackbar,onNightMode = { nightOpen = true })
+                    onFinished = playback::markCompleted,onRestart = { restart = true },onHistory = { sheet = "history" },onUndo = { s.history.firstOrNull { it.bookId == s.album?.id }?.let(playback::restoreHistory) },onRetry = playback::retryPlayback,snackbar = snackbar)
             }
         }
     }
@@ -215,12 +217,7 @@ fun LibraryApp(s: ProbeState, playback: PlaybackProbe, sharedInput: String, shar
         text = { Text("Der Hörfortschritt beginnt wieder am Anfang. Deine Lesezeichen bleiben erhalten.") },
         confirmButton = { TextButton(onClick = { playback.restartBook(play = true); restart = false }) { Text("Von vorne starten") } },
         dismissButton = { TextButton(onClick = { restart = false }) { Text("Abbrechen") } })
-    if (nightOpen) Dialog(onDismissRequest = { nightOpen = false },
-        properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false, dismissOnClickOutside = false)) {
-        NightPlayer(s,onClose = { nightOpen = false },onPlay = toggle,onSkip = playback::skip,
-            onBookmark = { playback.addBookmark() },onTimer = playback::startTimer,onTrackEnd = playback::trackEndTimer,
-            onExtendTimer = playback::extendTimer,onCancelTimer = playback::cancelTimer,onSleepStart = playback::returnToSleepStart)
-    }
+
 }
 
 @Composable
@@ -236,9 +233,12 @@ internal fun LibraryScreen(s: ProbeState, modifier: Modifier, onOpen: (LibraryBo
     val books = remember(s.books, query, filter, sort) { filterBooks(s.books, query, filter, sort) }
     val continueBook = s.books.filter { !it.completed && it.elapsedMs > 0 }.maxByOrNull { it.lastPlayedAt }
     val fontScale = LocalDensity.current.fontScale
-    LazyVerticalGrid(columns = if (listView) GridCells.Fixed(1) else GridCells.Adaptive((156 * fontScale.coerceAtLeast(1f)).dp),modifier = modifier.fillMaxSize(),
+    val gridState = rememberLazyGridState()
+    val hasOverflow by remember { derivedStateOf { gridState.canScrollForward || gridState.canScrollBackward } }
+    LazyVerticalGrid(columns = if (listView) GridCells.Fixed(1) else GridCells.Adaptive((156 * fontScale.coerceAtLeast(1f)).dp),
+        modifier = modifier.fillMaxSize().testTag("library-scroll"),state = gridState,userScrollEnabled = hasOverflow,
         contentPadding = PaddingValues(start = 20.dp,end = 20.dp,top = 8.dp,bottom = 100.dp),
-        horizontalArrangement = Arrangement.spacedBy(14.dp),verticalArrangement = Arrangement.spacedBy(18.dp)) {
+        horizontalArrangement = Arrangement.spacedBy(14.dp),verticalArrangement = Arrangement.spacedBy(if (listView) 8.dp else 18.dp)) {
         if (!s.libraryReady) item(key = "loading",span = { GridItemSpan(maxLineSpan) }) { LinearProgressIndicator(Modifier.fillMaxWidth()) }
         if (s.libraryReady && s.books.isEmpty()) item(key = "welcome",span = { GridItemSpan(maxLineSpan) }) {
             GettingStartedCard(s.loggedIn, onConnect, onAdd)
@@ -300,7 +300,7 @@ internal fun LibraryScreen(s: ProbeState, modifier: Modifier, onOpen: (LibraryBo
         }
         items(books,key = { "book:${it.id}" }) { book ->
             if (listView) {
-                BookListRow(book, s.showPlaybackWave && s.album?.id == book.id,
+                BookListRow(book,
                     Modifier.animateItem().testTag("library-list-${book.id}"),
                     onOpen = { onOpen(book, false) }, onRemove = { onRemove(book) })
             } else {
@@ -335,23 +335,21 @@ internal fun LibraryScreen(s: ProbeState, modifier: Modifier, onOpen: (LibraryBo
 }
 
 @Composable
-private fun BookListRow(book: LibraryBook, playing: Boolean, modifier: Modifier,
+private fun BookListRow(book: LibraryBook, modifier: Modifier,
     onOpen: () -> Unit, onRemove: () -> Unit) {
     var menu by remember { mutableStateOf(false) }
-    Surface(onClick = onOpen, modifier = modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp),
+    Surface(onClick = onOpen, modifier = modifier.fillMaxWidth(), shape = RoundedCornerShape(28.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHigh) {
-        Row(Modifier.padding(start = 14.dp, top = 14.dp, end = 4.dp, bottom = 14.dp),
-            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-            BookArtwork(book.coverUrl, Modifier.size(72.dp))
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                Text(book.title, style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                if (book.author.isNotBlank()) Text(book.author, style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        Row(Modifier.padding(start = 12.dp, top = 10.dp, end = 0.dp, bottom = 10.dp),
+            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            BookArtwork(book.coverUrl, Modifier.size(90.dp))
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(book.title, style = MaterialTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Text(if (book.completed) "Beendet" else if (book.elapsedMs > 0)
-                    "${(book.fraction*100).toInt()} % · ${durationLabel(book.durationMs-book.elapsedMs)} übrig"
-                    else "Nicht begonnen · ${durationLabel(book.durationMs)}",
-                    style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                if (book.elapsedMs > 0) SoftProgress(book.fraction, Modifier.fillMaxWidth().height(12.dp), playing)
+                    "${durationLabel(book.durationMs-book.elapsedMs)} verbleibend"
+                    else durationLabel(book.durationMs),
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
             Box {
                 IconButton(onClick = { menu = true }) { Icon(Icons.Rounded.MoreVert, "Optionen für ${book.title}") }
@@ -414,7 +412,7 @@ private fun MiniPlayer(s: ProbeState, onOpen: () -> Unit, onPlay: () -> Unit, em
 
 @Composable
 internal fun PlayerScreen(s: ProbeState,onBack: () -> Unit,onPlay: () -> Unit,onSkip: (Long) -> Unit,onSeek: (Long) -> Unit,
-    onBookmark: () -> Unit,onTimer: () -> Unit,onChapters: () -> Unit,onMarks: () -> Unit,onFinished: () -> Unit,onRestart: () -> Unit,onHistory: () -> Unit,onUndo: () -> Unit,onRetry: () -> Unit,snackbar: SnackbarHostState,onNightMode: (() -> Unit)? = null) {
+    onBookmark: () -> Unit,onTimer: () -> Unit,onChapters: () -> Unit,onMarks: () -> Unit,onFinished: () -> Unit,onRestart: () -> Unit,onHistory: () -> Unit,onUndo: () -> Unit,onRetry: () -> Unit,snackbar: SnackbarHostState) {
     val album = s.album ?: return
     val total = album.tracks.sumOf { it.durationMs }
     val elapsed = elapsedBookMs(album.tracks,s.index,s.positionMs)
@@ -456,7 +454,6 @@ internal fun PlayerScreen(s: ProbeState,onBack: () -> Unit,onPlay: () -> Unit,on
                 Text("JETZT HÖREN",style = MaterialTheme.typography.labelMedium,color = MaterialTheme.colorScheme.onSurfaceVariant)
             } },
             navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Rounded.KeyboardArrowDown,"Player minimieren") } },actions = {
-                if (onNightMode != null) IconButton(onClick = onNightMode) { Icon(Icons.Rounded.Bedtime,"Nachtmodus öffnen") }
                 Box {
                     IconButton(onClick = { menu = true }) { Icon(Icons.Rounded.MoreVert,"Hörbuchoptionen") }
                     DropdownMenu(expanded = menu,onDismissRequest = { menu = false }) {
@@ -514,7 +511,7 @@ internal fun PlayerScreen(s: ProbeState,onBack: () -> Unit,onPlay: () -> Unit,on
                 }
                 item {
                     Row(Modifier.fillMaxWidth(),horizontalArrangement = Arrangement.SpaceEvenly,verticalAlignment = Alignment.CenterVertically) {
-                        MotionIconButton(onClick = { onSkip(-30_000) },modifier = Modifier.size(60.dp)) { Icon(Icons.Rounded.Replay30,"30 Sekunden zurück",Modifier.size(34.dp)) }
+                        MotionIconButton(onClick = { onSkip(-s.skipSeconds * 1000L) },modifier = Modifier.size(60.dp)) { Column(horizontalAlignment = Alignment.CenterHorizontally) { Icon(Icons.Rounded.Replay,"${s.skipSeconds} Sekunden zurück",Modifier.size(26.dp)); Text("${s.skipSeconds} s",style = MaterialTheme.typography.labelSmall) } }
                         ExpressivePlayButton(playing = s.requestedPlay,onClick = onPlay) {
                             Crossfade(targetState = if (s.loading) "loading" else if (s.requestedPlay) "pause" else "play",
                                 animationSpec = tween(150),label = "Wiedergabetaste") { state ->
@@ -524,7 +521,7 @@ internal fun PlayerScreen(s: ProbeState,onBack: () -> Unit,onPlay: () -> Unit,on
                                 }
                             }
                         }
-                        MotionIconButton(onClick = { onSkip(30_000) },modifier = Modifier.size(60.dp)) { Icon(Icons.Rounded.Forward30,"30 Sekunden vor",Modifier.size(34.dp)) }
+                        MotionIconButton(onClick = { onSkip(s.skipSeconds * 1000L) },modifier = Modifier.size(60.dp)) { Column(horizontalAlignment = Alignment.CenterHorizontally) { Icon(Icons.Rounded.Replay,"${s.skipSeconds} Sekunden vor",Modifier.size(26.dp).scale(scaleX = -1f,scaleY = 1f)); Text("${s.skipSeconds} s",style = MaterialTheme.typography.labelSmall) } }
                     }
                 }
                 s.playbackProblem?.let { problem -> item {
@@ -641,15 +638,20 @@ private fun TimerSheet(s: ProbeState,playback: PlaybackProbe,onDismiss: () -> Un
 }
 
 @Composable
-private fun SettingsScreen(s: ProbeState,modifier: Modifier,playback: PlaybackProbe,onNightMode: () -> Unit) {
+private fun SettingsScreen(s: ProbeState,modifier: Modifier,playback: PlaybackProbe) {
     val context = LocalContext.current
     LazyColumn(modifier.fillMaxSize(),contentPadding = PaddingValues(20.dp),verticalArrangement = Arrangement.spacedBy(18.dp)) {
         item(key = "listening") { ListeningSettingsCard(s.resumeRewindSeconds, playback::setResumeRewind) }
         item(key = "appearance") { ThemeSettingsCard() }
-        item(key = "night") { SettingsCard(Icons.Rounded.Bedtime,"Nachtmodus","Große Tasten, schwarzer Hintergrund und eine gedimmte App-Ansicht zum Einschlafen.") {
-            TextButton(onClick = onNightMode) { Text("Nachtmodus öffnen") }
+        item(key = "skip") { SettingsCard(Icons.Rounded.Replay,"Sprungweite","Gilt für Vor- und Zurückspringen im Player, im Widget und in der Mediensteuerung.") {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf(5, 15, 30, 60).forEach { seconds ->
+                    FilterChip(selected = s.skipSeconds == seconds, onClick = { playback.setSkipSeconds(seconds) },
+                        label = { Text("$seconds Sekunden") })
+                }
+            }
         } }
-        item(key = "widget") { SettingsCard(Icons.Rounded.Widgets,"Homescreen-Widget","Start/Pause, 30 Sekunden zurück, Lesezeichen und dein letzter Einschlaftimer direkt auf dem Startbildschirm.") {
+        item(key = "widget") { SettingsCard(Icons.Rounded.Widgets,"Homescreen-Widget","Start/Pause, ${s.skipSeconds} Sekunden zurück, Lesezeichen und dein letzter Einschlaftimer direkt auf dem Startbildschirm.") {
             WidgetPreview(WidgetSnapshot.from(s),Modifier.fillMaxWidth().height(160.dp))
             val manager = AppWidgetManager.getInstance(context)
             if (manager.isRequestPinAppWidgetSupported) TextButton(onClick = {

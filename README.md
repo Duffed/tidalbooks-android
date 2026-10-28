@@ -1,6 +1,6 @@
 # TIDAL Hörbuch für Android
 
-Private Androidapp mit lokaler Hörbibliothek, gespeichertem Hörfortschritt pro Buch, Lesezeichen, Einschlaftimer und Material-You-Oberfläche. Version **0.4.0-private**, Android 8 oder neuer. Die alternative TIDAL-Anmeldung und vollständige Wiedergabe wurden auf dem angeschlossenen Pixel 9 Pro nachgewiesen. Es gibt keinen eigenen Server oder zusätzlichen App-Account.
+Private Androidapp mit lokaler Hörbibliothek, gespeichertem Hörfortschritt pro Buch, Lesezeichen, Einschlaftimer und Material-You-Oberfläche. Version **0.4.7-private**, Android 8 oder neuer. Die alternative TIDAL-Anmeldung und vollständige Wiedergabe wurden auf dem angeschlossenen Pixel 9 Pro nachgewiesen. Es gibt keinen eigenen Server oder zusätzlichen App-Account.
 
 ## Verwendung
 
@@ -15,11 +15,11 @@ Private Androidapp mit lokaler Hörbibliothek, gespeichertem Hörfortschritt pro
 ## Verhalten und Speicherung
 
 - Room speichert jedes Buch mit Metadaten und Trackreihenfolge einschließlich mehrerer Discs, Track-ID und Position in Millisekunden. Fortschritt wird während Wiedergabe alle vier Sekunden und unmittelbar bei Pause, Sprung, Track-/Buchwechsel sowie beim Verlassen der Activity eingereiht. Ein einzelner geordneter Datenbankschreiber verhindert veraltete Überschreibungen.
-- Die Bibliothek bietet Nicht begonnen, Angefangen und Beendet, Cover, Weiterhören, Gesamtfortschritt und Restzeit. ±30 Sekunden funktionieren über Trackgrenzen. Kein Shuffle oder Crossfade.
+- Die Bibliothek bietet Nicht begonnen, Angefangen und Beendet, Cover, Weiterhören, Gesamtfortschritt und Restzeit. Sprünge um 5/15/30/60 Sekunden funktionieren über Trackgrenzen. Kein Shuffle oder Crossfade.
 - Lesezeichen sind unabhängig vom aktuellen Fortschritt. Das Entfernen eines Buchs löscht nach Bestätigung dessen Fortschritt und Lesezeichen.
 - Am Buchende wird pausiert und das Buch als beendet markiert. Erneutes Hören beginnt ausdrücklich über „Von vorne hören“.
 - Der Timer zählt monotone abgelaufene Zeit einschließlich Pausen und Pufferung. Deadline, Boot-Zähler und Startposition werden gespeichert. Ein Prozessneustart startet kein Audio; ein abgelaufener Timer bleibt aus. Nach einem Geräteneustart wird kein Timer automatisch aktiviert. Die Startposition bleibt auch nach Ablauf/Abbrechen erhalten. In den letzten fünf Sekunden vor Frist bzw. Trackende wird die appinterne Lautstärke ausgeblendet; danach wird pausiert und mindestens fünf Sekunden zurückgesprungen, begrenzt durch den Buchanfang. Der Beginn der leisen Phase wird vorsorglich gespeichert. Abbrechen/Verlängern stellt die normale Lautstärke wieder her; die Systemlautstärke bleibt unverändert.
-- Wiedergabe läuft in einem Media3 MediaSessionService. System-Mediensteuerung enthält Titel, Cover, Play/Pause und ±30 Sekunden. Die Benachrichtigung führt zurück zum Player. Die App verwendet die dynamischen Systemfarben ab Android 12 und das Systemdesign; ältere Geräte erhalten passende helle/dunkle Farben. Compose Material3 1.5.0-alpha01.
+- Wiedergabe läuft in einem Media3 MediaSessionService. System-Mediensteuerung enthält Titel, Cover, Play/Pause und Sprünge um 5/15/30/60 Sekunden. Die Benachrichtigung führt zurück zum Player. Die App verwendet die dynamischen Systemfarben ab Android 12 und das Systemdesign; ältere Geräte erhalten passende helle/dunkle Farben. Compose Material3 1.5.0-alpha01.
 - Bei einem TIDAL-Fehler wird pausiert, ohne einen Abschnitt stillschweigend zu überspringen. Der zuletzt gespeicherte Fortschritt bleibt erhalten.
 
 Die Daten sind lokal. Unter **Einstellungen → Backup & Wiederherstellung** lässt sich eine JSON-Sicherung über Androids Dateiauswahl speichern und wieder einspielen. Enthalten sind Bibliothek, Hörstände, Lesezeichen, Positionsverlauf, das zuletzt geöffnete Buch und der Einschlafanker; keine Audiodateien, Anmeldedaten oder Darstellungseinstellungen. Vor der Wiederherstellung wird bestätigt: enthaltene Hörstände werden ersetzt, andere Bücher und zusätzliche Lesezeichen bleiben erhalten. Die Wiedergabe bleibt pausiert, Timer werden nicht aktiviert. Auf einem neuen Gerät ist eine erneute TIDAL-Anmeldung erforderlich. Deinstallieren oder „App-Daten löschen“ entfernt die lokale Bibliothek; eine separat aufbewahrte Sicherung erlaubt ihre Wiederherstellung. Es gibt keine automatische Sicherung, Synchronisierung, Webversion, Downloads oder Geschwindigkeitsregelung.
@@ -117,17 +117,53 @@ pausiert; das Optionsmenü erlaubt weiterhin das Entfernen mit Bestätigung. Suc
 Statusfilter, Sortierung und „Weiterhören“ funktionieren in beiden Ansichten.
 
 
-## Widget und Nachtmodus (0.4.0)
+## Widget und Sprungweite (0.4.1)
 
 Einstellungen → Homescreen-Widget bietet eine bedienbare Vorschau und „Widget hinzufügen“.
-Das Widget steuert Start/Pause, 30 Sekunden zurück, Lesezeichen und den zuletzt verwendeten
-Minutentimer (erneutes Tippen schaltet ihn aus). Die Mondsichel öffnet direkt den Nachtmodus.
-Systemaktualisierungen starten niemals Audio. Countdown läuft mit monotoner Deadline;
-Cover werden nur aus dem bestehenden Cache gelesen. Während Wiedergabe wird der Fortschritt
-höchstens alle 15 Sekunden aktualisiert; Steuerungszustände ändern sich unmittelbar.
+Das Widget steuert Start/Pause, Zurückspringen, Lesezeichen und den zuletzt verwendeten
+Minutentimer. Systemaktualisierungen starten niemals Audio. Der separate Nachtmodus
+mit Fensterdimmung und alle zugehörigen Einstiege wurden entfernt. System/Hell/Dunkel
+unter Farben & Darstellung bleiben verfügbar.
 
-Nachtmodus über die Mondsichel im Player oder Einstellungen → Nachtmodus öffnen:
-schwarze Oberfläche, große Transporttasten, Lesezeichen, Timerwahl/Verlängern/Abbrechen
-und Rückkehr zum Einschlafanker. Die einstellbare Dimmung gilt nur für das App-Fenster;
-Schließen stellt die vorherige Helligkeit wieder her. Systemhelligkeit und Farbpräferenzen
-bleiben erhalten, der Bildschirm darf sich weiterhin normal ausschalten.
+Einstellungen → Sprungweite: 5, 15, 30 oder 60 Sekunden, Standard 30 Sekunden.
+Eine gemeinsame, lokal gespeicherte Wahl gilt sofort für beide Richtungen im Player,
+im Widget und in der Mediensteuerung, auch über Abschnittsgrenzen.
+
+
+28.10.2026 – 0.4.2-private (versionCode 14)
+Vor- und Zurückspringen im Player verwenden denselben runden Pfeil, für die
+Vorwärtsrichtung horizontal gespiegelt. Größe, Strichstärke und Sekundenangabe
+sind identisch. Keine Änderung an Sprungweiten, Wiedergabe oder Datenhaltung.
+
+
+28.10.2026 – 0.4.3-private (versionCode 15)
+Bibliothek mit kompakter einzeiliger App-Leiste statt großem ausklappendem Kopf.
+Doppeltes Plus oben entfernt; Hinzufügen unten und im Leerzustand bleibt verfügbar.
+Die Überschrift erhält die volle Breite. Andere Tabs behalten ihre bisherige Leiste.
+
+
+28.10.2026 – 0.4.4-private (versionCode 16)
+Kompaktere Listenansicht: Cover 80 statt 72 dp, weniger Innenabstand, kleinere
+Titel, Autor einzeilig, engere Textabstände und schmalere Fortschrittsanzeige.
+Listenabstand 8 statt 18 dp. Zeilen wachsen weiterhin bei großer Systemschrift;
+Optionsmenü bleibt mit normaler Touchfläche. Kachelansicht unverändert.
+
+
+28.10.2026 – 0.4.5-private (versionCode 17)
+Listencover auf 104 dp vergrößert und bündig an die linke Kartenkante gesetzt.
+Text behält kompakte Abstände, bei großer Systemschrift kann die Zeile wachsen.
+Weiterhören bleibt unverändert: zuletzt gehörtes unvollendetes Buch, während
+der Mini-Player das aktuell geöffnete Buch zeigt.
+
+
+28.10.2026 – 0.4.6-private (versionCode 18)
+Listenkarte an Weiterhören angeglichen: 90-dp-Cover (oben 82 dp), wieder
+Innenabstand links/oben/unten und stärkere Kartenrundung. Nur Titel und Restzeit
+bzw. Gesamtdauer/Beendet; Autor, Prozentzahl und Fortschrittsbalken entfallen
+ausschließlich in Listenzeilen. Autorensuche bleibt verfügbar.
+
+
+28.10.2026 – 0.4.7-private (versionCode 19)
+Bibliothekskopf ohne Collapse-/Nested-Scroll-Verbindung. Grid/Liste nimmt
+Scrollgesten nur an, wenn vorwärts oder rückwärts Inhalt außerhalb des
+sichtbaren Bereichs liegt. Lange Bibliotheken und Suche bleiben scrollbar.

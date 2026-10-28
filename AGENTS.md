@@ -10,5 +10,5 @@ Lies README.md, WEITERENTWICKLUNG.txt, BUILD-RESULT.txt und docs/VERIFICATION.md
 - Fortschritt: Track-ID plus Millisekunden pro Buch; bei Neustart kein Autoplay. Ein fertiges Buch nur ausdrücklich von vorne starten.
 - Lesezeichen bleiben unabhängig vom Hörfortschritt. Anspringen erhält Play/Pause.
 - Timer nutzt elapsedRealtime plus Boot-Zähler; Frist zählt während Pause/Pufferung weiter. Separaten Einschlafanker bei Ablauf/Abbrechen erhalten.
-- MediaSessionService muss seine Sitzung per addSession registrieren. Native ±30-Sekunden-Tasten sind SessionCommands mit SLOT_BACK/SLOT_FORWARD; Provider deckt kompakte Benachrichtigungen ab.
+- MediaSessionService muss seine Sitzung per addSession registrieren. Native Sprungtasten (5/15/30/60 s, lokal gespeichert) sind SessionCommands mit SLOT_BACK/SLOT_FORWARD; Provider deckt kompakte Benachrichtigungen ab.
 - Prüfen: :app:assembleDebug :app:assembleDebugAndroidTest :app:testDebugUnitTest :app:lintDebug. Fünf Android-Datenbanktests verwenden eine separate Testdatenbank. Der Signaturschlüssel ist absichtlich separat; beim Update auf dem Handy denselben Schlüssel benutzen, niemals einfach App-Daten löschen.

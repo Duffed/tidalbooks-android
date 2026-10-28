@@ -9,7 +9,6 @@
     <string name="widget_mark">Merken</string>
     <string name="widget_start">Start</string>
     <string name="widget_timer">30 Min.</string>
-    <string name="widget_night">Nachtmodus öffnen</string>
     <string name="widget_bookmark">Lesezeichen setzen</string>
     <string name="widget_rewind">30 Sekunden zurück</string>
 </resources>

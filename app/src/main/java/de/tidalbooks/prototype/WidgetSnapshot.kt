@@ -4,7 +4,7 @@ package de.tidalbooks.prototype
 internal data class WidgetSnapshot(
     val title: String, val coverUrl: String?, val hasBook: Boolean, val completed: Boolean,
     val pauseAction: Boolean, val chapter: Int, val chapters: Int, val elapsedMs: Long,
-    val durationMs: Long, val timerActive: Boolean, val deadlineMs: Long?, val lastTimerMinutes: Int,
+    val durationMs: Long, val timerActive: Boolean, val deadlineMs: Long?, val lastTimerMinutes: Int, val skipSeconds: Int = 30,
 ) {
     companion object {
         fun from(s: ProbeState): WidgetSnapshot {
@@ -13,7 +13,7 @@ internal data class WidgetSnapshot(
                 s.requestedPlay && !s.completed,s.index+1,book?.tracks?.size ?: 0,
                 if (book != null) elapsedBookMs(book.tracks,s.index,s.positionMs)/15_000*15_000 else 0,
                 book?.tracks?.sumOf { it.durationMs } ?: 0,s.sleepSession?.active == true,
-                s.sleepSession?.takeIf { it.active }?.deadlineElapsedMs,s.lastTimerMinutes.coerceIn(1,180))
+                s.sleepSession?.takeIf { it.active }?.deadlineElapsedMs,s.lastTimerMinutes.coerceIn(1,180),s.skipSeconds)
         }
     }
 }

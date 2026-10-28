@@ -16,9 +16,6 @@
                     android:maxLines="1" android:ellipsize="end" />
             </LinearLayout>
         </LinearLayout>
-        <ImageButton android:id="@+id/widget_night" android:layout_width="48dp" android:layout_height="48dp"
-            android:padding="12dp" android:background="@android:color/transparent" android:src="@drawable/ic_widget_night"
-            android:contentDescription="@string/widget_night" />
     </LinearLayout>
     <ProgressBar android:id="@+id/widget_progress" style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent" android:layout_height="3dp" android:layout_marginTop="8dp" android:layout_marginBottom="8dp"
@@ -28,7 +25,7 @@
             android:layout_height="48dp" android:orientation="vertical" android:gravity="center"
             android:clickable="true" android:focusable="true" android:contentDescription="@string/widget_rewind">
             <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_widget_back" android:importantForAccessibility="no" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/widget_back" android:textSize="11sp" android:textColor="@color/widget_text" />
+            <TextView android:id="@+id/widget_back_label" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/widget_back" android:textSize="11sp" android:textColor="@color/widget_text" />
         </LinearLayout>
         <LinearLayout android:id="@+id/widget_play" android:layout_width="0dp" android:layout_weight="1"
             android:layout_height="48dp" android:orientation="vertical" android:gravity="center" android:clickable="true" android:focusable="true">

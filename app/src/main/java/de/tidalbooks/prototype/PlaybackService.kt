@@ -39,23 +39,34 @@ class PlaybackService : MediaSessionService() {
                 }
                 // Older Android notifications use this order; Android 13+ uses the session slots.
                 return ImmutableList.copyOf(listOfNotNull(
-                    buttons.firstOrNull { it.sessionCommand?.customAction == "de.tidalbooks.SKIP_BACK_30" },play,
-                    buttons.firstOrNull { it.sessionCommand?.customAction == "de.tidalbooks.SKIP_FORWARD_30" }))
+                    buttons.firstOrNull { it.sessionCommand?.customAction == "de.tidalbooks.SKIP_BACK" },play,
+                    buttons.firstOrNull { it.sessionCommand?.customAction == "de.tidalbooks.SKIP_FORWARD" }))
             }
         }.apply { setSmallIcon(R.drawable.ic_notification) })
         val intent = PendingIntent.getActivity(this,0,Intent(this,MainActivity::class.java).putExtra("openPlayer",true),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         val adapter = BookMediaPlayer(playback)
-        val back = SessionCommand("de.tidalbooks.SKIP_BACK_30",Bundle.EMPTY)
-        val forward = SessionCommand("de.tidalbooks.SKIP_FORWARD_30",Bundle.EMPTY)
-        val buttons = listOf(
-            CommandButton.Builder(CommandButton.ICON_SKIP_BACK_30).setSessionCommand(back).setSlots(CommandButton.SLOT_BACK)
+        val back = SessionCommand("de.tidalbooks.SKIP_BACK",Bundle.EMPTY)
+        val forward = SessionCommand("de.tidalbooks.SKIP_FORWARD",Bundle.EMPTY)
+        fun buttons(seconds: Int): List<CommandButton> = listOf(
+            CommandButton.Builder(when(seconds) {
+                5 -> CommandButton.ICON_SKIP_BACK_5
+                15 -> CommandButton.ICON_SKIP_BACK_15
+                30 -> CommandButton.ICON_SKIP_BACK_30
+                else -> CommandButton.ICON_SKIP_BACK
+            }).setSessionCommand(back).setSlots(CommandButton.SLOT_BACK)
                 .setExtras(Bundle().apply { putInt(DefaultMediaNotificationProvider.COMMAND_KEY_COMPACT_VIEW_INDEX,0) })
-                .setDisplayName("30 Sekunden zurück").build(),
-            CommandButton.Builder(CommandButton.ICON_SKIP_FORWARD_30).setSessionCommand(forward).setSlots(CommandButton.SLOT_FORWARD)
+                .setDisplayName("$seconds Sekunden zurück").build(),
+            CommandButton.Builder(when(seconds) {
+                5 -> CommandButton.ICON_SKIP_FORWARD_5
+                15 -> CommandButton.ICON_SKIP_FORWARD_15
+                30 -> CommandButton.ICON_SKIP_FORWARD_30
+                else -> CommandButton.ICON_SKIP_FORWARD
+            }).setSessionCommand(forward).setSlots(CommandButton.SLOT_FORWARD)
                 .setExtras(Bundle().apply { putInt(DefaultMediaNotificationProvider.COMMAND_KEY_COMPACT_VIEW_INDEX,2) })
-                .setDisplayName("30 Sekunden vor").build(),
+                .setDisplayName("$seconds Sekunden vor").build(),
         )
+        val initialButtons = buttons(playback.state.value.skipSeconds)
         session = MediaSession.Builder(this,adapter).setId("audiobooks").setSessionActivity(intent)
             .setCallback(object : MediaSession.Callback {
                 override fun onConnect(session: MediaSession, controller: MediaSession.ControllerInfo): MediaSession.ConnectionResult =
@@ -64,18 +75,29 @@ class PlaybackService : MediaSessionService() {
                 override fun onCustomCommand(session: MediaSession, controller: MediaSession.ControllerInfo,
                     customCommand: SessionCommand, args: Bundle): ListenableFuture<SessionResult> {
                     when(customCommand.customAction) {
-                        back.customAction -> playback.skip(-30_000)
-                        forward.customAction -> playback.skip(30_000)
+                        back.customAction -> playback.skip(-playback.state.value.skipSeconds * 1000L)
+                        forward.customAction -> playback.skip(playback.state.value.skipSeconds * 1000L)
                         else -> return Futures.immediateFuture(SessionResult(SessionError.ERROR_NOT_SUPPORTED))
                     }
                     return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
                 }
             })
-            .setMediaButtonPreferences(buttons).setCustomLayout(buttons).build()
+            .setMediaButtonPreferences(initialButtons).setCustomLayout(initialButtons).build()
         // UI starts this service directly, so no controller would register the session for us.
         // Registration enables the actual MediaStyle notification and system transport controls.
         addSession(requireNotNull(session))
-        scope.launch { playback.state.collect { adapter.refresh() } }
+        scope.launch {
+            var currentSeconds = playback.state.value.skipSeconds
+            playback.state.collect { state ->
+                adapter.refresh()
+                if (currentSeconds != state.skipSeconds) {
+                    currentSeconds = state.skipSeconds
+                    val updated = buttons(currentSeconds)
+                    session?.setMediaButtonPreferences(updated)
+                    session?.setCustomLayout(updated)
+                }
+            }
+        }
     }
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = session
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -122,7 +144,7 @@ private class BookMediaPlayer(private val playback: PlaybackProbe) : SimpleBaseP
             .setPlaylist(playlist).setCurrentMediaItemIndex(if (playlist.isEmpty()) C.INDEX_UNSET else s.index)
             .setPlaybackState(if (playlist.isEmpty()) Player.STATE_IDLE else if (s.loading) Player.STATE_BUFFERING else Player.STATE_READY)
             .setPlayWhenReady(s.requestedPlay,Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST)
-            .setSeekBackIncrementMs(30_000).setSeekForwardIncrementMs(30_000)
+            .setSeekBackIncrementMs(s.skipSeconds * 1000L).setSeekForwardIncrementMs(s.skipSeconds * 1000L)
             .setContentPositionMs(s.positionMs).build()
     }
     override fun handleSetPlayWhenReady(playWhenReady: Boolean): ListenableFuture<*> {
@@ -131,8 +153,8 @@ private class BookMediaPlayer(private val playback: PlaybackProbe) : SimpleBaseP
     }
     override fun handleSeek(mediaItemIndex: Int, positionMs: Long, seekCommand: Int): ListenableFuture<*> {
         when (seekCommand) {
-            Player.COMMAND_SEEK_BACK -> playback.skip(-30_000)
-            Player.COMMAND_SEEK_FORWARD -> playback.skip(30_000)
+            Player.COMMAND_SEEK_BACK -> playback.skip(-playback.state.value.skipSeconds * 1000L)
+            Player.COMMAND_SEEK_FORWARD -> playback.skip(playback.state.value.skipSeconds * 1000L)
             else -> playback.seek(mediaItemIndex,if (positionMs == C.TIME_UNSET) 0 else positionMs)
         }
         return Futures.immediateVoidFuture()

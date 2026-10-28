@@ -305,3 +305,70 @@ Sekunden Wiedergabe und Pause, ohne die Launcher-Ansicht zu verlassen. Widget-Mo
 Neue zusätzliche Cache- und Vorschau-Zugänglichkeitstests sind kompiliert, wurden auf
 Nutzerwunsch zur Zeitersparnis nicht zusätzlich auf dem Gerät ausgeführt.
 Ursprüngliche App mit vorhandenem Schlüssel aktualisiert. Kein Room-Schemawechsel.
+
+
+28.10.2026 – 0.4.1-private (versionCode 13)
+Separaten Nachtmodus samt Dimmung und Einstiegen entfernt. Normales hell/dunkel bleibt.
+Sprungweite unter Einstellungen: 5/15/30/60 Sekunden, lokal gespeichert, gemeinsam
+für Player, Widget und MediaSession, sofortige Aktualisierung der Mediensteuerung.
+Build, AndroidTest-APK und Lint erfolgreich; 61 JVM-Tests bestanden.
+Drei gezielte Widget-Gerätetests bestanden (native Steuerelemente mit 15 Sekunden,
+Countdown/Leerzustand und zugängliche Vorschau ohne Nachtmodus).
+Auf Pixel mit bisherigem Schlüssel per install -r aktualisiert, keine Daten gelöscht.
+
+
+28.10.2026 – 0.4.2-private (versionCode 14)
+Vor- und Zurückspringen im Player verwenden denselben runden Pfeil, für die
+Vorwärtsrichtung horizontal gespiegelt. Größe, Strichstärke und Sekundenangabe
+sind identisch. Keine Änderung an Sprungweiten, Wiedergabe oder Datenhaltung.
+Build, Test-APK, 61 JVM-Tests und Android Lint erfolgreich. APK aktualisiert.
+Kein ADB-Gerät verbunden; dieses Update wurde noch nicht auf dem Pixel installiert.
+
+
+28.10.2026 – 0.4.3-private (versionCode 15)
+Bibliothek mit kompakter einzeiliger App-Leiste statt großem ausklappendem Kopf.
+Doppeltes Plus oben entfernt; Hinzufügen unten und im Leerzustand bleibt verfügbar.
+Die Überschrift erhält die volle Breite. Andere Tabs behalten ihre bisherige Leiste.
+Build, Test-APK, 61 JVM-Tests und Android Lint erfolgreich. Auf Pixel per install -r
+mit bisherigem Schlüssel aktualisiert und geöffnet; keine App-Daten gelöscht.
+
+
+28.10.2026 – 0.4.4-private (versionCode 16)
+Kompaktere Listenansicht: Cover 80 statt 72 dp, weniger Innenabstand, kleinere
+Titel, Autor einzeilig, engere Textabstände und schmalere Fortschrittsanzeige.
+Listenabstand 8 statt 18 dp. Zeilen wachsen weiterhin bei großer Systemschrift;
+Optionsmenü bleibt mit normaler Touchfläche. Kachelansicht unverändert.
+Build, Test-APK, 61 JVM-Tests und Android Lint erfolgreich. Auf Pixel mit bisherigem
+Schlüssel per install -r auf 0.4.4 aktualisiert und geöffnet, keine App-Daten gelöscht.
+
+
+28.10.2026 – 0.4.5-private (versionCode 17)
+Listencover auf 104 dp vergrößert und bündig an die linke Kartenkante gesetzt.
+Text behält kompakte Abstände, bei großer Systemschrift kann die Zeile wachsen.
+Weiterhören bleibt unverändert: zuletzt gehörtes unvollendetes Buch, während
+der Mini-Player das aktuell geöffnete Buch zeigt.
+Build, Test-APK, 61 JVM-Tests und Android Lint erfolgreich. Auf Pixel per install -r
+mit bisherigem Schlüssel auf 0.4.5 aktualisiert und geöffnet, keine Daten gelöscht.
+
+
+28.10.2026 – 0.4.6-private (versionCode 18)
+Listenkarte an Weiterhören angeglichen: 90-dp-Cover (oben 82 dp), wieder
+Innenabstand links/oben/unten und stärkere Kartenrundung. Nur Titel und Restzeit
+bzw. Gesamtdauer/Beendet; Autor, Prozentzahl und Fortschrittsbalken entfallen
+ausschließlich in Listenzeilen. Autorensuche bleibt verfügbar.
+Build, Test-APK, 61 JVM-Tests und Android Lint erfolgreich. Auf Pixel per install -r
+mit bisherigem Schlüssel auf 0.4.6 aktualisiert. Listenansicht mit vorhandenen
+Büchern per Screenshot geprüft: Innenabstand vorhanden, nur Titel und Restzeit.
+Keine App-Daten gelöscht.
+
+
+28.10.2026 – 0.4.7-private (versionCode 19)
+Bibliothekskopf ohne Collapse-/Nested-Scroll-Verbindung. Grid/Liste nimmt
+Scrollgesten nur an, wenn vorwärts oder rückwärts Inhalt außerhalb des
+sichtbaren Bereichs liegt. Lange Bibliotheken und Suche bleiben scrollbar.
+Build, Test-APK, 61 JVM-Tests und Android Lint erfolgreich. Drei gezielte Pixel-
+Tests bestanden: kurze Liste bleibt nach Wischen stehen, lange Liste reagiert
+weiter auf Wischen und lässt sich bis Anfang/Ende scrollen; Ansichtswechsel,
+Öffnen ohne Autoplay, Wiederherstellung und Autorensuche erhalten.
+Vorhandene UI-Tests an fehlende Scrollaktion bei passendem Inhalt angepasst.
+Auf Pixel per install -r auf 0.4.7 aktualisiert, App-Daten erhalten.

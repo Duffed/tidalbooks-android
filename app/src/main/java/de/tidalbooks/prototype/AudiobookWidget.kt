@@ -54,7 +54,7 @@ class AudiobookWidget : AppWidgetProvider() {
                             else toast(context,if (s.completed) "Zum erneuten Hören in der App „Von vorne“ wählen." else "Bitte in der App mit TIDAL verbinden.")
                         }
                         "PAUSE" -> p.pause() // Explicit pause can never resume a restored process.
-                        "BACK" -> p.skip(-30_000)
+                        "BACK" -> p.skip(-s.skipSeconds * 1000L)
                         "MARK" -> { p.addBookmark(); p.library.flush(); toast(context,"Lesezeichen gesetzt.") }
                         "TIMER" -> {
                             if (s.sleepSession?.active == true) { p.cancelTimer(); toast(context,"Einschlaftimer ausgeschaltet.") }
@@ -99,11 +99,12 @@ class AudiobookWidget : AppWidgetProvider() {
             fun command(name: String): PendingIntent = PendingIntent.getBroadcast(context,name.hashCode(),
                 Intent(context,AudiobookWidget::class.java).setAction(context.packageName+".widget."+name)
                     .addFlags(Intent.FLAG_RECEIVER_FOREGROUND),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-            fun open(night: Boolean): PendingIntent = PendingIntent.getActivity(context,if (night) 702 else 701,
-                Intent(context,MainActivity::class.java).putExtra("openPlayer",true).putExtra("openNightMode",night),
+            val open = PendingIntent.getActivity(context,701,
+                Intent(context,MainActivity::class.java).putExtra("openPlayer",true),
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-            setOnClickPendingIntent(R.id.widget_header,open(false))
-            setOnClickPendingIntent(R.id.widget_night,open(true))
+            setOnClickPendingIntent(R.id.widget_header,open)
+            setTextViewText(R.id.widget_back_label,"−${s.skipSeconds} s")
+            setContentDescription(R.id.widget_back,"${s.skipSeconds} Sekunden zurück")
             setOnClickPendingIntent(R.id.widget_play,command(if (s.pauseAction) "PAUSE" else "PLAY"))
             setOnClickPendingIntent(R.id.widget_back,command("BACK"))
             setOnClickPendingIntent(R.id.widget_mark,command("MARK"))

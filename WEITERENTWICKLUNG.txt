@@ -1,3 +1,50 @@
+Weiterarbeiten auf einem zweiten PC – Stand 0.4.7-private, 28.10.2026
+
+Repository: https://github.com/Duffed/tidalbooks-android (privat, Branch main)
+
+1. Git, Android Studio und bei Bedarf Codex installieren. Mit dem GitHub-Konto
+   anmelden, das Zugriff auf das private Repository hat. Repository klonen:
+   git clone https://github.com/Duffed/tidalbooks-android.git
+   Den geklonten Ordner in Android Studio und in Codex öffnen.
+2. JDK 17, Android SDK Platform 35, Android SDK Build-Tools 35.0.0 und
+   Platform-Tools installieren. Gradle JDK ausdrücklich auf JDK 17 setzen.
+   Gradle 8.13 wird über den enthaltenen Wrapper geladen; kein globales Gradle nötig.
+3. Den Signaturschlüssel SEPARAT vom bisherigen PC mitnehmen:
+   TIDAL-Hoerbuch-Buildschluessel.zip, darin probe-debug.jks.
+   Er ist absichtlich NICHT in GitHub. Ohne ihn akzeptiert das bestehende Handy
+   kein App-Update unter Erhalt seiner Daten. Nicht deinstallieren!
+4. local.properties im geklonten Projekt lokal anlegen, Pfade an den neuen PC anpassen:
+   sdk.dir=C:/Users/NAME/AppData/Local/Android/Sdk
+   debug.storeFile=C:/sicherer-Ordner/probe-debug.jks
+   Alias androiddebugkey, Store-/Schlüsselpasswort android (Entwicklungsschlüssel).
+   Unter macOS/Linux die dortigen absoluten Pfade verwenden.
+   Keine T:-Laufwerksverweise vom alten PC übernehmen. local.properties und
+   Schlüssel sind durch .gitignore ausgeschlossen.
+5. Windows: .\gradlew.bat :app:assembleDebug :app:assembleDebugAndroidTest :app:testDebugUnitTest :app:lintDebug
+   macOS/Linux: ./gradlew mit denselben Aufgaben; gegebenenfalls chmod +x gradlew.
+   APK: app/build/outputs/apk/debug/app-debug.apk.
+6. Handy verbinden, USB-Debugging für diesen PC bestätigen. Update:
+   adb install -r app/build/outputs/apk/debug/app-debug.apk
+   Bibliothek, Hörstände, Lesezeichen und TIDAL-Anmeldung bleiben auf demselben
+   Handy erhalten. Vorab lässt sich zusätzlich ein Bibliotheksbackup in der App
+   erstellen. Bei Wechsel auf ein anderes Handy Backup importieren und dort
+   TIDAL erneut verbinden; Kontotokens werden nicht über GitHub übertragen.
+7. Codex im geklonten Projekt starten und zunächst AGENTS.md, README.md,
+   BUILD-RESULT.txt sowie docs/VERIFICATION.md lesen lassen. Projektdateien und
+   Übergabenotizen enthalten den Entwicklungsstand unabhängig vom Chatverlauf.
+8. Vor weiterer Arbeit git pull --ff-only; Änderungen anschließend committen und
+   pushen, bevor auf dem anderen PC weitergearbeitet wird.
+
+Aktuell: Nachtmodus entfernt, Sprungweite 5/15/30/60 Sekunden gespeichert und auf
+Player/Widget/Mediensteuerung angewendet. Einheitliche Sprungicons, kompakter Kopf,
+reduzierte Listenkarte mit 90-dp-Cover und Innenabstand, kein Scrollen bei vollständig
+passendem Bibliotheksinhalt. 61 JVM-Tests und die drei gezielten Bibliotheks-Gerätetests
+bestanden; Android Lint ohne Fehler. Version 0.4.7 ist auf dem Pixel installiert.
+Die hier lokal vorhandenen work/-Hilfsskripte und Toolchains sind nicht Teil des
+Repositories; auf dem neuen PC den Gradle-Wrapper und normales Android SDK benutzen.
+
+--- Frühere Übergabenotizen und Änderungsverlauf ---
+
 Übergabe für einen anderen PC — Hörbuch 0.3.0-private
 
 Mit GitHub: Ein privates Repository anlegen und nur den Projektordner tidalbooks-prototype hochladen. Auf dem anderen PC klonen und diesen Ordner in Codex öffnen. .gitignore schließt Build-Verzeichnisse, lokale Einstellungen, APKs und Schlüssel aus. Das separate Buildschlüssel-Archiv niemals in Git hochladen. Der Git-Verlauf enthält den Quellcode; den bisherigen Codex-Chatverlauf ersetzt er nicht. AGENTS.md und diese Datei enthalten dafür den technischen Übergabestand.
@@ -58,3 +105,48 @@ Sekunden Wiedergabe und Pause, ohne die Launcher-Ansicht zu verlassen. Widget-Mo
 Neue zusätzliche Cache- und Vorschau-Zugänglichkeitstests sind kompiliert, wurden auf
 Nutzerwunsch zur Zeitersparnis nicht zusätzlich auf dem Gerät ausgeführt.
 Ursprüngliche App mit vorhandenem Schlüssel aktualisiert. Kein Room-Schemawechsel.
+
+
+28.10.2026 – 0.4.1-private (versionCode 13)
+Separaten Nachtmodus samt Dimmung und Einstiegen entfernt. Normales hell/dunkel bleibt.
+Sprungweite unter Einstellungen: 5/15/30/60 Sekunden, lokal gespeichert, gemeinsam
+für Player, Widget und MediaSession, sofortige Aktualisierung der Mediensteuerung.
+
+
+28.10.2026 – 0.4.2-private (versionCode 14)
+Vor- und Zurückspringen im Player verwenden denselben runden Pfeil, für die
+Vorwärtsrichtung horizontal gespiegelt. Größe, Strichstärke und Sekundenangabe
+sind identisch. Keine Änderung an Sprungweiten, Wiedergabe oder Datenhaltung.
+
+
+28.10.2026 – 0.4.3-private (versionCode 15)
+Bibliothek mit kompakter einzeiliger App-Leiste statt großem ausklappendem Kopf.
+Doppeltes Plus oben entfernt; Hinzufügen unten und im Leerzustand bleibt verfügbar.
+Die Überschrift erhält die volle Breite. Andere Tabs behalten ihre bisherige Leiste.
+
+
+28.10.2026 – 0.4.4-private (versionCode 16)
+Kompaktere Listenansicht: Cover 80 statt 72 dp, weniger Innenabstand, kleinere
+Titel, Autor einzeilig, engere Textabstände und schmalere Fortschrittsanzeige.
+Listenabstand 8 statt 18 dp. Zeilen wachsen weiterhin bei großer Systemschrift;
+Optionsmenü bleibt mit normaler Touchfläche. Kachelansicht unverändert.
+
+
+28.10.2026 – 0.4.5-private (versionCode 17)
+Listencover auf 104 dp vergrößert und bündig an die linke Kartenkante gesetzt.
+Text behält kompakte Abstände, bei großer Systemschrift kann die Zeile wachsen.
+Weiterhören bleibt unverändert: zuletzt gehörtes unvollendetes Buch, während
+der Mini-Player das aktuell geöffnete Buch zeigt.
+
+
+28.10.2026 – 0.4.6-private (versionCode 18)
+Listenkarte an Weiterhören angeglichen: 90-dp-Cover (oben 82 dp), wieder
+Innenabstand links/oben/unten und stärkere Kartenrundung. Nur Titel und Restzeit
+bzw. Gesamtdauer/Beendet; Autor, Prozentzahl und Fortschrittsbalken entfallen
+ausschließlich in Listenzeilen. Autorensuche bleibt verfügbar.
+
+
+28.10.2026 – 0.4.7-private (versionCode 19)
+Bibliothekskopf ohne Collapse-/Nested-Scroll-Verbindung. Grid/Liste nimmt
+Scrollgesten nur an, wenn vorwärts oder rückwärts Inhalt außerhalb des
+sichtbaren Bereichs liegt. Lange Bibliotheken und Suche bleiben scrollbar.

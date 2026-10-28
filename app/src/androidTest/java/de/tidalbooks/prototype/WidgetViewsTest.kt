@@ -22,11 +22,13 @@ class WidgetViewsTest {
             .single { it.provider == component }
         assertEquals(0,info.updatePeriodMillis)
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
-            val views = AudiobookWidget.views(context,WidgetSnapshot.from(ProbeState(album = album,requestedPlay = true)))
+            val views = AudiobookWidget.views(context,WidgetSnapshot.from(ProbeState(album = album,requestedPlay = true,skipSeconds = 15)))
                 .apply(context,FrameLayout(context))
             assertEquals("Ein Hörbuch",views.findViewById<TextView>(R.id.widget_title).text.toString())
+            assertEquals("−15 s",views.findViewById<TextView>(R.id.widget_back_label).text.toString())
+            assertEquals("15 Sekunden zurück",views.findViewById<View>(R.id.widget_back).contentDescription)
             assertEquals("Pause",views.findViewById<TextView>(R.id.widget_play_label).text.toString())
-            listOf(R.id.widget_play,R.id.widget_back,R.id.widget_mark,R.id.widget_timer,R.id.widget_night).forEach {
+            listOf(R.id.widget_play,R.id.widget_back,R.id.widget_mark,R.id.widget_timer).forEach {
                 assertTrue(views.findViewById<View>(it).hasOnClickListeners())
             }
         }

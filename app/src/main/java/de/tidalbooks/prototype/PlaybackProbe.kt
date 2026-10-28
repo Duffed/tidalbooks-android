@@ -49,6 +49,7 @@ class PlaybackProbe(private val app: ProbeApp, private val gateway: OfficialTida
 
     init {
         mutable.update { it.copy(resumeRewindSeconds = preferences.getInt("resumeSeconds", 0).takeIf { v -> v in listOf(0, 5, 10, 15, 30) } ?: 0,
+            skipSeconds = preferences.getInt("skipSeconds", 30).takeIf { it in listOf(5, 15, 30, 60) } ?: 30,
             lastTimerMinutes = preferences.getInt("lastTimerMinutes", 30).coerceIn(1, 180)) }
         scope.launch { library.dao.observeHistory().catch { notify("Positionsverlauf konnte nicht geladen werden.") }
             .collect { history -> mutable.update { it.copy(history = history) } } }
@@ -403,6 +404,12 @@ class PlaybackProbe(private val app: ProbeApp, private val gateway: OfficialTida
         val tracks = state.value.album?.tracks ?: return
         val target = bookPosition(tracks,positionMs); seek(target.index,target.positionMs)
     }
+    fun setSkipSeconds(seconds: Int) {
+        if (seconds !in listOf(5, 15, 30, 60)) return
+        preferences.edit().putInt("skipSeconds", seconds).apply()
+        mutable.update { it.copy(skipSeconds = seconds) }
+    }
+
     fun skip(deltaMs: Long) {
         val s = state.value; val tracks = s.album?.tracks ?: return
         seekAbsolute(elapsedBookMs(tracks,s.index,s.positionMs)+deltaMs)

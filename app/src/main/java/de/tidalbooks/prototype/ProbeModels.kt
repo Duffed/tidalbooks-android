@@ -31,6 +31,7 @@ data class ProbeState(
     val libraryReady: Boolean = false,
     val history: List<StoredJump> = emptyList(),
     val resumeRewindSeconds: Int = 0,
+    val skipSeconds: Int = 30,
     val lastTimerMinutes: Int = 30,
     val playbackProblem: String? = null,
 
