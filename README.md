@@ -1,6 +1,6 @@
 # TIDAL Hörbuch für Android
 
-Private Androidapp mit lokaler Hörbibliothek, gespeichertem Hörfortschritt pro Buch, Lesezeichen, Einschlaftimer und Material-You-Oberfläche. Version **0.3.0-private**, Android 8 oder neuer. Die alternative TIDAL-Anmeldung und vollständige Wiedergabe wurden auf dem angeschlossenen Pixel 9 Pro nachgewiesen. Es gibt keinen eigenen Server oder zusätzlichen App-Account.
+Private Androidapp mit lokaler Hörbibliothek, gespeichertem Hörfortschritt pro Buch, Lesezeichen, Einschlaftimer und Material-You-Oberfläche. Version **0.3.2-private**, Android 8 oder neuer. Die alternative TIDAL-Anmeldung und vollständige Wiedergabe wurden auf dem angeschlossenen Pixel 9 Pro nachgewiesen. Es gibt keinen eigenen Server oder zusätzlichen App-Account.
 
 ## Verwendung
 
@@ -97,3 +97,12 @@ Der Cache gilt für die App-Oberfläche; System-Medienbilder lädt Media3 separa
 Bei Pause ohne laufenden Minutentimer oder ausstehenden Positionssprung prüft
 die App den Player einmal statt zehnmal pro Sekunde. Während Wiedergabe und
 Minutentimer bleibt der bisherige 100-ms-Takt für Timer/Fade erhalten.
+
+
+## Korrekturen 0.3.2 (28.10.2026)
+
+Beim Start schwingt die Wellenhöhe weich aus einer geraden Linie ein. Ein gemeinsamer Container hält Position und Layout dabei konstant. Fortschrittsanzeigen wechseln beim Pausieren, Puffern oder Fehler direkt zur geraden Linie. Die Wellen-Komponente wird in diesen Zuständen vollständig durch einen dünnen geraden Fortschrittsbalken ersetzt. Ein noch nachlaufender PLAYING-Wert der Engine aktiviert keine Welle, wenn bereits Pause angefordert wurde.
+
+Der am Pixel beobachtete TIDAL-Code `-1:3:4006` bezeichnet zurückgeforderte Decoder-Ressourcen (Media3 `ERROR_CODE_DECODING_RESOURCES_RECLAIMED`), keinen fehlenden Abschnitt. Während Pause wird der ungültige Decoder zurückgesetzt und beim nächsten bewussten Start neu geladen. Bei angeforderter Wiedergabe erfolgt höchstens ein automatischer Neuaufbau am selben Track/Offset. Wiederholte Decoderfehler sowie echte Netzwerk-/Kontofehler bleiben sichtbar. Keine automatische Wiedergabe im Pausenzustand und kein Überspringen von Abschnitten.
+
+Referenz: https://developer.android.com/reference/androidx/media3/common/PlaybackException#ERROR_CODE_DECODING_RESOURCES_RECLAIMED

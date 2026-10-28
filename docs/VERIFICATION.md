@@ -211,3 +211,30 @@ Abstaende, 48-dp-Play-Touchziel und kompakteres Symbol. Wellenverhalten erhalten
 Alle vier Gradle-Pruefungen erfolgreich; auf Pixel installiert und die pausierte
 Ansicht mit vorhandenem Buch visuell geprueft. Keine neuen Instrumentierungstests
 fuer diese Layoutaenderung. App-Daten erhalten. APK: Hoerbuch-Test.apk.
+
+
+28.10.2026 – Korrekturen 0.3.2-private (versionCode 10)
+GitHub-Stand 5b0c081 vor der Änderung per Fast-forward übernommen.
+Welle: sanftes Einschwingen beim Start; gemeinsamer Container hält Position und
+Layout konstant. Bei Pause, Pufferung oder Fehler sofort ein echter gerader Strich.
+Ein verspäteter PLAYING-Wert nach angeforderter Pause aktiviert keine Welle.
+Decoder: Am Pixel zuvor -1:3:4006 beobachtet (Media3 zurückgeforderte Decoder-
+Ressourcen). Bei Pause nur Decoder invalidieren, Position erhalten, kein Autoplay.
+Bei Wiedergabewunsch maximal ein Neuaufbau am selben Track/Offset; danach Fehler
+sichtbar. Netzwerk-/Konto-/andere Decoderfehler werden nicht pauschal unterdrückt.
+Build: assembleDebug, assembleDebugAndroidTest, testDebugUnitTest und lintDebug
+bestanden; 57 JVM-Tests, 0 Fehler. Android Lint: 0 Fehler.
+Drei Pixel-Grafiktests bestanden: sofort flach nach Pause, wiederholte Pause/Pufferung,
+weiches Anwachsen der Welle und unveränderte Containerposition. Die Tests messen
+Pixelkontrast und funktionieren auch bei invertierten Darstellungsfarben.
+Ursprüngliche App de.tidalbooks.prototype auf Nutzerwunsch mit bisherigem Schlüssel
+aktualisiert; Installation erfolgreich, Anmeldung und vorhandene Bücher erhalten.
+Realer Start mit FULL, rund neun Sekunden Wiedergabe, anschließende Pause ohne
+playbackProblem geprüft (0.3.1; Decoderlogik in 0.3.2 identisch). Die abschließende
+0.3.2 wurde danach installiert; Grafiktests direkt in ihrer Instrumentierung bestanden.
+Hörbuch Test besitzt einen anderen Schlüssel und wurde nicht ersetzt. Die vorüber-
+gehende separate Prüf-App wurde wieder entfernt. Keine App-Daten gelöscht.
+Eine erneute reale Decoder-Rückforderung durch Android ist nicht deterministisch
+erzwingbar; die Recovery-Entscheidungen sind durch Regressionstests abgesichert.
+APK: `TIDAL-Hoerbuch.apk`
+SHA-256: 19999ea5930b479115e818e4d685d6db658c968feb71d93e5243a74db16fb5f8

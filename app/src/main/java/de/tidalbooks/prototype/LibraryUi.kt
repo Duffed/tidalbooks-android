@@ -232,7 +232,7 @@ internal fun LibraryScreen(s: ProbeState, modifier: Modifier, onOpen: (LibraryBo
         if (continueBook != null && filter == "Alle" && query.isBlank()) item(key = "continue",span = { GridItemSpan(maxLineSpan) }) {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text("Weiterhören",style = MaterialTheme.typography.titleMedium)
-                ContinueCard(continueBook,{ onOpen(continueBook,false) },{ onOpen(continueBook,true) },s.playing && !s.loading && s.album?.id == continueBook.id)
+                ContinueCard(continueBook,{ onOpen(continueBook,false) },{ onOpen(continueBook,true) },s.showPlaybackWave && s.album?.id == continueBook.id)
             }
         }
         item(key = "filters",span = { GridItemSpan(maxLineSpan) }) {
@@ -300,7 +300,7 @@ internal fun LibraryScreen(s: ProbeState, modifier: Modifier, onOpen: (LibraryBo
                 }
                 Text(if (book.completed) "Beendet" else if (book.elapsedMs > 0) "${(book.fraction*100).toInt()} % · ${durationLabel(book.durationMs-book.elapsedMs)} übrig" else durationLabel(book.durationMs),
                     style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.onSurfaceVariant,modifier = Modifier.padding(top = 8.dp))
-                if (book.elapsedMs > 0) SoftProgress(value = book.fraction,playing = s.playing && !s.loading && s.album?.id == book.id,modifier = Modifier.fillMaxWidth().padding(top = 12.dp,bottom = 4.dp).height(12.dp))
+                if (book.elapsedMs > 0) SoftProgress(value = book.fraction,playing = s.showPlaybackWave && s.album?.id == book.id,modifier = Modifier.fillMaxWidth().padding(top = 12.dp,bottom = 4.dp).height(12.dp))
             }
         }
     }
@@ -341,7 +341,7 @@ private fun MiniPlayer(s: ProbeState, onOpen: () -> Unit, onPlay: () -> Unit, em
                     maxLines = 1, overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
-                SoftProgress(value = fraction, playing = s.playing && !s.loading,
+                SoftProgress(value = fraction, playing = s.showPlaybackWave,
                     modifier = Modifier.fillMaxWidth().height(8.dp))
             }
             MotionIconButton(onClick = onPlay, modifier = Modifier.size(48.dp)) {
@@ -443,7 +443,7 @@ internal fun PlayerScreen(s: ProbeState,onBack: () -> Unit,onPlay: () -> Unit,on
                             FilterChip(selected = !chapterMode, onClick = { chapterMode = false }, label = { Text("Ganzes Buch") })
                             FilterChip(selected = chapterMode, onClick = { chapterMode = true }, label = { Text("Abschnitt") })
                         }
-                        ExpressiveSeekBar(playing = s.playing && !s.loading,value = dragging ?: (seekElapsed.toFloat()/seekDuration.coerceAtLeast(1)).coerceIn(0f,1f),onValueChange = { dragging = it },onValueChangeFinished = {
+                        ExpressiveSeekBar(playing = s.showPlaybackWave,value = dragging ?: (seekElapsed.toFloat()/seekDuration.coerceAtLeast(1)).coerceIn(0f,1f),onValueChange = { dragging = it },onValueChangeFinished = {
                             dragging?.let { onSeek(seekBase + (it*seekDuration).toLong().coerceAtMost((seekDuration-1).coerceAtLeast(0))) }; dragging = null
                         },modifier = Modifier.semantics { contentDescription = if (chapterMode) "Position im Abschnitt" else "Position im Hörbuch"
                             stateDescription = "${clock(seekElapsed)} von ${clock(seekDuration)}" })

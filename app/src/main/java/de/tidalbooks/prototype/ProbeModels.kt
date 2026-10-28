@@ -34,7 +34,10 @@ data class ProbeState(
     val lastTimerMinutes: Int = 30,
     val playbackProblem: String? = null,
 
-)
+) {
+    val showPlaybackWave: Boolean
+        get() = requestedPlay && playing && !loading && playbackProblem == null && !completed
+}
 
 fun albumId(input: String): String {
     val value = input.trim()

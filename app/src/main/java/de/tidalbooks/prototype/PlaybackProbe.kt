@@ -35,6 +35,7 @@ class PlaybackProbe(private val app: ProbeApp, private val gateway: OfficialTida
     private var initialized = false
     private var serviceActive = false
     private var alternativeLogin: Job? = null
+    private val decoderRecovery = DecoderRecovery()
     private data class PendingSeek(val trackId: String, val positionMs: Long)
     private var pendingSeek: PendingSeek? = null
     private var seekTarget: Long? = null
@@ -237,8 +238,27 @@ class PlaybackProbe(private val app: ProbeApp, private val gateway: OfficialTida
                     }
                 }
                 is Event.Error -> {
+                    when (decoderRecovery.onError(event.errorCode, state.value.requestedPlay)) {
+                        DecoderRecovery.Action.INVALIDATE_PAUSED -> {
+                            engine.reset()
+                            pendingSeek = null; seekTarget = null
+                            mutable.update { it.copy(playing = false, loading = false) }
+                            saveCurrentPosition(readEngine = false)
+                            return@collect
+                        }
+                        DecoderRecovery.Action.RETRY -> {
+                            val s = state.value
+                            engine.pause(); engine.reset()
+                            pendingSeek = null; seekTarget = null
+                            loadTrack(s.index, s.positionMs, play = true, recoveringDecoder = true)
+                            return@collect
+                        }
+                        DecoderRecovery.Action.REPORT -> Unit
+                    }
                     val code = event.errorCode.take(48).filter { it.isLetterOrDigit() || it in ":_-" }
-                    val problem = "TIDAL konnte den Abschnitt nicht laden ($code). Prüfe deine Verbindung. Falls der Fehler bleibt, verbinde TIDAL in den Einstellungen erneut."
+                    val problem = if (event.errorCode == "-1:3:4006")
+                        "Android konnte die Audiowiedergabe nicht wiederherstellen. Versuche es erneut ($code)."
+                    else "TIDAL konnte den Abschnitt nicht laden ($code). Prüfe deine Verbindung. Falls der Fehler bleibt, verbinde TIDAL in den Einstellungen erneut."
                     pause(problem, readEngine = false)
                     mutable.update { it.copy(playbackProblem = problem) }
                 }
@@ -298,8 +318,9 @@ class PlaybackProbe(private val app: ProbeApp, private val gateway: OfficialTida
         val next = if (timer.endTrackId != null) null else s.album?.tracks?.getOrNull(s.index+1)
         engine.setNext(next?.let { MediaProduct(ProductType.TRACK,it.id) })
     }
-    private fun loadTrack(index: Int, positionMs: Long, play: Boolean) {
+    private fun loadTrack(index: Int, positionMs: Long, play: Boolean, recoveringDecoder: Boolean = false) {
         val track = state.value.album?.tracks?.getOrNull(index) ?: return
+        if (!recoveringDecoder) decoderRecovery.newRequest()
         mutable.update { it.copy(index = index, positionMs = positionMs, requestedPlay = play, playing = false,
             continuousPlayedMs = 0, presentation = "Wird geladen", playbackProblem = null) }
         stalledSince = null
@@ -319,6 +340,7 @@ class PlaybackProbe(private val app: ProbeApp, private val gateway: OfficialTida
         if (s.album == null || !s.libraryReady || s.busy) return
         if (!s.loggedIn) { notify("Bitte zuerst mit TIDAL verbinden."); return }
         if (s.completed) { notify("Dieses Hörbuch ist beendet. Wähle „Von vorne hören“, um es erneut zu starten."); return }
+        decoderRecovery.newRequest()
         if (timer.expired(SystemClock.elapsedRealtime())) { expireTimer(); return }
         prepareResume()
         s = state.value

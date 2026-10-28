@@ -8,6 +8,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
@@ -19,22 +21,40 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material.icons.automirrored.rounded.LibraryBooks
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.Alignment
 
 @Composable
 internal fun ExpressiveProgress(value: Float, modifier: Modifier = Modifier, playing: Boolean = false) {
-    val amplitude by animateFloatAsState(if (playing) .6f else 0f,
-        MaterialTheme.motionScheme.fastEffectsSpec(), label = "Wellenhöhe")
+    val entrance = remember { Animatable(0f) }
+    LaunchedEffect(playing) {
+        entrance.snapTo(0f)
+        if (playing) entrance.animateTo(.6f, tween(220, easing = FastOutSlowInEasing))
+    }
+    // Read in composition so Material's cached path receives each updated amplitude.
+    val amplitude = entrance.value
     val stroke = with(LocalDensity.current) { Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round) }
-    LinearWavyProgressIndicator(progress = { value }, modifier = modifier,
-        amplitude = { amplitude }, waveSpeed = if (playing) 16.dp else 0.dp,
-        wavelength = 24.dp, stroke = stroke, trackStroke = stroke, stopSize = 0.dp,
-        trackColor = MaterialTheme.colorScheme.outlineVariant)
+    // One shared container keeps the baseline and layout stable across state changes.
+    Box(modifier, contentAlignment = Alignment.Center) {
+        if (!playing) {
+            // Pause/buffering/error must not wait for an exit animation.
+            LinearProgressIndicator(progress = { value }, modifier = Modifier.fillMaxWidth().height(2.dp),
+                trackColor = MaterialTheme.colorScheme.outlineVariant, gapSize = 0.dp, drawStopIndicator = {})
+        } else {
+            LinearWavyProgressIndicator(progress = { value }, modifier = Modifier.matchParentSize(),
+                amplitude = { amplitude }, waveSpeed = 16.dp,
+                wavelength = 24.dp, stroke = stroke, trackStroke = stroke, stopSize = 0.dp, gapSize = 0.dp,
+                trackColor = MaterialTheme.colorScheme.outlineVariant)
+        }
+    }
 }
 
 /** Keep the native slider's drag, keyboard and accessibility behavior; customize only its track. */

@@ -30,3 +30,11 @@ Suchkorrektur zusätzlich mit drei UI-Tests geprüft. Details und Grenzen in VER
 Cover-Optimierung: ArtworkStore mit 16 MiB RAM/64 MiB Dateicache und gebündelten
 Ladevorgängen; pausierte Player-Abfragen ohne aktiven Minutentimer auf 1 Hz reduziert.
 53 JVM-Tests und gezielt 4 Gerätetests bestanden; Details in VERIFICATION.md.
+
+
+Korrekturen 0.3.2: sanfter Wellenstart bei stabiler Position, sofort flach bei Pause/
+Pufferung/Fehler. Begrenzte Wiederherstellung für beobachteten Decoder-Code -1:3:4006;
+keine Unterdrückung echter Netzwerk-/Kontofehler. 57 JVM-Tests und drei Pixel-Grafiktests
+bestanden, Build/Lint ohne Fehler. Ursprüngliche App mit bisherigem Schlüssel auf
+versionCode 10 aktualisiert. Hörbuch Test hat einen anderen Signaturschlüssel und
+bleibt separat. Kein Zurücksetzen der App-Daten; Details im Prüfprotokoll.
