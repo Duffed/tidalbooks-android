@@ -31,3 +31,18 @@ Der Android-Prototyp übernimmt nur das öffentliche Geräteprofil, implementier
 Quellen: [tidalapi 0.8.11](https://pypi.org/project/tidalapi/0.8.11/), [tidalapi-Repository](https://github.com/EbbLabs/python-tidal), [Tides-Wiedergabeschnittstelle](https://github.com/luchfilip/Tides-WearOS/blob/main/feature-player/src/main/kotlin/dev/tidesapp/wearos/player/data/api/TidesPlaybackApi.kt). NOORwaves aktueller Quellcode und auch der geprüfte Tag v1.1.0 enthalten keine zugängliche Playerimplementierung. Die Alternative wird deshalb nicht als identische NOORwave-Implementierung bezeichnet.
 
 Der persistente Hörbuch-Datenbestand ist in Version 0.3.0-private implementiert. Die TIDAL-Anbindung bleibt hinter dem Gateway und CredentialsProvider gekapselt; die lokale Bibliothek benötigt zum Anzeigen und Wiederherstellen des Hörstands keinen Katalogabruf. Der zusätzliche V1-Diagnosetest ist nicht Bestandteil des normalen Bedienablaufs.
+
+
+## Einschlaftimer-Lautstärke (28.10.2026)
+Der gepinnte TIDAL-Player 0.0.73 besitzt in ExoPlayerPlaybackEngine die Methoden
+getPlayerVolume/setPlayerVolume, bietet sie jedoch nicht im PlaybackEngine-Interface
+seines SingleHandlerPlaybackEngine-Wrappers an. TidalSleepVolume kapselt deshalb einen
+streng auf diese Version begrenzten reflektiven Zugriff auf delegate und handler.
+Alle Gain-Zugriffe laufen auf dem SDK-Handler, ohne Systemlautstärke oder Audiofokus
+zu verändern. Die Wiederherstellung berechnet die normale SDK-Normalisierungslautstärke
+für den aktuellen Track neu. Ein Instrumentierungstest prüft den tatsächlichen
+SDK-Zugriff, Halbierung, Stummschaltung und Wiederherstellung ohne Audio abzuspielen.
+Bei SDK-Upgrades ist der Adapter erneut zu prüfen (bei künftiger R8-Minifizierung
+müssen die reflektierten Mitglieder erhalten bleiben). Bei Inkompatibilität erscheint
+eine Meldung; Timerstopp und Rücksprung bleiben aktiv. Ein Hörtest mit laufendem Stream
+ist zusätzlich sinnvoll; der SDK-Gaintest ist kein akustischer Nachweis.

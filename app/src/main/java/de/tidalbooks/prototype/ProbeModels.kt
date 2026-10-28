@@ -29,6 +29,11 @@ data class ProbeState(
     val completed: Boolean = false,
     val sleepSession: StoredSleep? = null,
     val libraryReady: Boolean = false,
+    val history: List<StoredJump> = emptyList(),
+    val resumeRewindSeconds: Int = 0,
+    val lastTimerMinutes: Int = 30,
+    val playbackProblem: String? = null,
+
 )
 
 fun albumId(input: String): String {

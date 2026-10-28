@@ -13,3 +13,20 @@ Mit GitHub: Ein privates Repository anlegen und nur den Projektordner tidalbooks
 Status: Der alternative TIDAL-Gerätezugang spielt mit dem freigegebenen Konto FULL. Room-Bibliothek, Fortschritt pro Buch, Lesezeichen, persistente Einschlafsitzungen, Medienbenachrichtigung und Material You sind implementiert. 31 JVM-Tests und fünf Android-Room-Tests bestanden; Android Lint ohne Fehler. Reale Telefonanrufe, mehrere Bluetooth-Geräte, längerer Batteriesparmodus und Netzverlust während Pufferung noch manuell prüfen.
 
 Der Chatverlauf allein ersetzt die lokalen Dateien nicht. Fortschritt und Kontotokens sind keine PC-Projektdateien, sondern bleiben im App-Speicher des Pixel. Es werden keine Kontotokens oder privaten Developer-Secrets für die PC-Übergabe exportiert.
+
+
+Aktualisierung 28.10.2026: Manuelles Backup/Wiederherstellung in Einstellungen
+und 5-Sekunden-Timer-Fade mit Rücksprung ergänzt. 48 Unit- und 18 Gerätetests bestanden.
+Instrumentierung künftig direkt per adb nach install -r ausführen, damit die
+Test-App danach nicht von Gradle deinstalliert wird. Nach jedem Testlauf den
+Installationsstand prüfen. Der versionsgebundene SDK-Lautstärkeadapter steht in
+docs/INTEGRATION.md; ein akustischer Stream-Test ist noch offen.
+
+Stand danach: Suche/Sortierung, Positionsverlauf/Rückgängig, optionaler Wiederaufnahme-
+Rücksprung, Abschnittsspulen, letzter Timer, Einstieg und Fehlerwiederholung implementiert.
+Room-Schema 2 mit expliziter Migration 1→2. 53 JVM-Tests/23 Gerätetests bestanden;
+Suchkorrektur zusätzlich mit drei UI-Tests geprüft. Details und Grenzen in VERIFICATION.
+
+Cover-Optimierung: ArtworkStore mit 16 MiB RAM/64 MiB Dateicache und gebündelten
+Ladevorgängen; pausierte Player-Abfragen ohne aktiven Minutentimer auf 1 Hz reduziert.
+53 JVM-Tests und gezielt 4 Gerätetests bestanden; Details in VERIFICATION.md.

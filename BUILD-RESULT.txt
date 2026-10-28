@@ -1,4 +1,79 @@
 TIDAL Hörbuch — private Androidapp / Build-Ergebnis
+Nachtrag 2026-10-28: Einheitliche Schrift
+Serifenschrift des Player-Buchtitels entfernt; wieder normale Material-Typografie.
+Alle vier Buildprüfungen erfolgreich; Test-App auf dem Pixel aktualisiert.
+
+Nachtrag 2026-10-28: Randlose Buchkarten
+Kontur entfernt, Schatten auf 2 dp reduziert; tonale Material-You-Fläche erhalten.
+Alle vier Buildprüfungen erfolgreich; Test-App auf dem Pixel aktualisiert.
+
+Nachtrag 2026-10-28: Einheitliches Kartenraster
+Cover, Titel, Restzeit und Balken mit gemeinsamen seitlichen Kanten (12 dp Rand).
+Fortschrittsbalken volle Inhaltsbreite, 6 dp hoch; Titel bis zu drei Zeilen.
+Auch Weiterhören-Balken an Textspalte ausgerichtet. Am Pixel visuell geprüft.
+Alle vier Buildprüfungen erfolgreich; Test-App aktualisiert und gestartet.
+
+Nachtrag 2026-10-28: Kontrastreichere Karten und feste Aktionsleiste
+Buchkarten mit stärkerer Fläche, Kontur und Schatten; Fortschritt auf 78 Prozent
+der Inhaltsbreite verkürzt und von 4 auf 8 dp verstärkt, kontrastreiche Spur.
+Einleitung „Zeit für eine gute Geschichte“ entfernt.
+Player-Aktionen als feste Scaffold-bottomBar mit Hintergrund und Systemabstand.
+Alle vier Buildprüfungen erfolgreich; 31 JVM-Tests bestanden, Lint ohne Fehler.
+Karten und untere Leiste am Pixel visuell geprüft, Test-App aktualisiert.
+Keine erneute Ausführung der unveränderten Gerätetests für diese Layoutänderung.
+
+Nachtrag 2026-10-28: Ruhiges Design und erweitertes Minimieren
+Herunterziehen über Cover/Inhalt mit Nested Scroll; kurzer Zug genügt.
+Dezente Karten, Cover-Schatten, Serifentitel, Flächenverlauf und Ziehgriff.
+Feine Druck-, Fortschritts-, Cover-, Abschnitt- und Aktionsanimationen.
+Alle vier Buildprüfungen erfolgreich; 31 JVM-Tests, 0 Fehler.
+Pixel: 10 Gerätetests bestanden (5 Gestentests, 5 isolierte Room-Tests).
+Lint: 0 Fehler, 24 Warnungen. Bibliothek/Player visuell geprüft.
+Test-App aktualisiert und gestartet; Daten erhalten, Bildschirmzeit restauriert.
+APK: app/build/outputs/apk/debug/Hoerbuch-Test.apk
+
+Nachtrag 2026-10-28: Direkt ziehbarer, wachsender Player
+Permanente Bibliothek hinter einer einzigen vergrößerbaren Player-Fläche.
+Tippen oder langsames Hochziehen öffnet; Kopfzeile herunterziehen minimiert.
+Compose-Federanimation beim Loslassen, direkte Fingerführung während des Drags.
+Alle vier Buildprüfungen erfolgreich; 31 JVM-Tests bestanden.
+Lint: 0 Fehler, 24 Warnungen.
+Pixel: 7 Gerätetests bestanden (2 Gestentests, 5 isolierte Room-Tests).
+Mini-/Vollansicht mit vorhandenem Buch visuell geprüft; Test-App aktualisiert
+und gestartet. Anmeldung und Buch nach Update vorhanden; kein Datenreset.
+APK: app/build/outputs/apk/debug/Hoerbuch-Test.apk
+Temporär geänderte Bildschirmzeit wieder auf ursprüngliche 120000 ms gesetzt.
+
+Nachtrag 2026-10-28: Player fährt von unten hoch
+Überblendung durch vertikalen Übergang ersetzt: Öffnen 380 ms, Schließen 320 ms.
+Bibliothek bleibt währenddessen unbewegt hinter dem Player; Pfeil nach unten
+minimiert den Player. Zurück verwendet denselben Übergang.
+Alle vier Buildprüfungen erfolgreich. Test-App per install -r aktualisiert und
+auf dem Pixel erfolgreich gestartet. Keine App-Daten gelöscht.
+Visuelle Beurteilung des neuen Übergangs auf dem Gerät noch offen.
+
+Nachtrag 2026-10-28: Separate App „Hörbuch Test“
+Buildparameter: -PseparateApp=true
+App-ID: de.tidalbooks.prototype.testapp; Version: 0.3.0-private-test
+assembleDebug, assembleDebugAndroidTest, testDebugUnitTest, lintDebug: ERFOLGREICH
+Installation und Start auf Pixel 9 Pro: ERFOLGREICH
+Fünf Android-Room-Tests in isolierter Testdatenbank: BESTANDEN
+Original-App de.tidalbooks.prototype bleibt parallel installiert und unverändert.
+Test-App hat eine eigene Anmeldung und Bibliothek; keine Datenübernahme.
+APK: app/build/outputs/apk/debug/Hoerbuch-Test.apk
+Animationsprüfung mit angemeldetem Konto und Büchern weiterhin offen.
+
+Nachtrag 2026-10-28: Compose-Animationen
+assembleDebug, assembleDebugAndroidTest, testDebugUnitTest, lintDebug: ERFOLGREICH
+31 JVM-Tests, 0 Fehler; Lint: 0 Fehler, 24 Warnungen.
+Player-/Tabwechsel, Listenänderungen, Cover, Wiedergabetaste und Timerfarbe animiert.
+Neue APK: app/build/outputs/apk/debug/app-debug.apk
+Auf diesem PC mit neuem Debugschlüssel gebaut. Signatur stimmt NICHT mit der
+installierten Pixel-App überein. Kein Update installiert, keine App-Daten gelöscht.
+Geräte-/Animationstests und erneute Room-Gerätetests nicht ausgeführt.
+Für ein Update ist weiterhin der ursprüngliche separate Buildschlüssel nötig.
+Die nachfolgenden Ergebnisse dokumentieren den früheren Stand vor den Animationen.
+
 Datum: 2026-10-28 (Europe/Berlin)
 Version: 0.3.0-private (8)
 Paket: de.tidalbooks.prototype
@@ -49,3 +124,125 @@ SHA-256: fdbe29e028851b92599c9d235e3d76b7afd5a41c2516031526941027d9fe1a72
 Quellarchiv: TIDAL-Hoerbuch-Quellprojekt.zip (ohne Schlüssel/local.properties)
 PC-Übergabe: WEITERENTWICKLUNG.txt; Buildschlüssel separat privat mitnehmen.
 Buildumgebung: JDK 17, Gradle 8.13, Android SDK 35 / Build-Tools 35.0.0.
+
+28.10.2026 – Themes in separater Hörbuch-Test-App:
+Material/Studio, Material You und fünf kuratierte Paletten, System/Hell/Dunkel mit persistenter Auswahl. Native Compose Material3-Implementierung, kein Flutter. Alle vier Gradle-Prüfaufgaben erfolgreich, 34 JVM-Tests bestanden; Android Lint ohne Fehler. Helle Darstellung auf Pixel geprüft; native Theme-Basis verhindert zusätzliche Force-Dark-Umfärbung. APK: app/build/outputs/apk/debug/Hoerbuch-Test.apk.
+Finale APK erneut geprüft: alle elf Instrumentierungstests bestanden (5 Gesten, 5 Room, 1 Theme). Update auf Pixel installiert; Bildschirmzeit auf 120000 ms zurückgestellt.
+
+28.10.2026 – Eigenständige Studio-Oberfläche:
+Compose Unstyled primitives 1.49.3 + Compose Foundation; eigene Navigation, Coverzeilen, Player, Buttons, Seek-Regler, Eingaben, Menüs und Dialoge. Material bleibt separat auswählbar. Alle vier Gradle-Prüfaufgaben erfolgreich; 34 Unit-Tests und final alle 14 Gerätetests bestanden. Lint: 0 Fehler, 26 Warnungen. Bibliothek, Vollplayer und korrigierter dunkler Importdialog auf Pixel visuell geprüft. Separate Test-App aktualisiert, Daten erhalten. APK: app/build/outputs/apk/debug/Hoerbuch-Test.apk.
+
+28.10.2026 – Nur Material 3 Expressive:
+Studio, Designumschalter und Compose-Unstyled-Abhängigkeit vollständig entfernt. Offizielles MaterialExpressiveTheme/MotionScheme.expressive, morphende Filter und Tasten, große Play-/Pause-Steuerung, Expressive-Ladeindikator. Material3 1.5.0-alpha01 als kompatible Vorabversion gepinnt. Farben und System/Hell/Dunkel bleiben gespeichert. Alle vier Gradle-Prüfungen erfolgreich; 34 JVM-Tests und 12 Gerätetests bestanden. Lint: 0 Fehler, 25 Warnungen. Bibliothek, Einstellungen hell/dunkel und Vollplayer auf Pixel visuell geprüft. Separate Test-App ohne Datenverlust aktualisiert. APK: app/build/outputs/apk/debug/Hoerbuch-Test.apk.
+
+
+28.10.2026 – Größeres Player-Cover und weicher Cover-Hintergrund:
+Positionsgriff auf 4 × 22 dp verkleinert; Wellenamplitude von 35 auf 60 Prozent,
+Player-Spur auf 14 dp erhöht. Cover nutzt die Inhaltsbreite bis maximal 380 dp.
+Weichgezeichnetes Cover im Hintergrund mit Verlauf zur normalen Theme-Fläche;
+kleinere Abstände im Player. Niedrig aufgelöste Hintergrundgrafik als Fallback
+für ältere Androidversionen. Wiedergabe- und Speicherlogik unverändert.
+Alle vier Buildprüfungen erfolgreich; 34 Unit-Tests, 13 Gerätetests bestanden.
+Lint: 0 Fehler, 26 Warnungen (zusätzlicher Bitmap-KTX-Stilhinweis).
+Separate Test-App auf Pixel durch Testlauf aktualisiert. Visuelle Beurteilung
+mit echtem Cover noch offen. APK: app/build/outputs/apk/debug/Hoerbuch-Test.apk.
+
+Korrektur nach Gerätetestlauf: Test-App war anschließend nicht installiert (per pm list packages bestätigt). Hoerbuch-Test.apk erneut mit adb install -r erfolgreich installiert und MainActivity gestartet. Ursprüngliche App weiterhin vorhanden. Erhalt der Test-App-Daten nach dem Testlauf nicht verifiziert.
+
+
+28.10.2026 – Backup/Wiederherstellung und sanfter Einschlaftimer:
+Einstellungen: JSON-Sicherung über Android CreateDocument/OpenDocument.
+Bibliothek, Track-ID/Millisekunden-Hörstände, unabhängige Lesezeichen, letztes Buch
+und inaktiver Einschlafanker; keine Zugangsdaten, Streams oder Audiodateien.
+Versioniertes, größenbegrenztes Format mit Referenzprüfung. Bestätigte Wiederherstellung
+ersetzt enthaltene Bücher/Hörstände und erhält andere Bücher sowie zusätzliche
+Lesezeichen. Upsert innerhalb einer Transaktion über LibraryStore.write; kein
+Datenbankschemawechsel. Fehler/Bookmark-Konflikte bewirken keine Teilwiederherstellung.
+Wiedergabe bleibt pausiert, aktive Timer werden nicht aus einem Backup übernommen.
+
+Timer: letzte 5 Sekunden bis Frist bzw. Trackende mit appinterner Gain-Absenkung.
+Danach Pause und mindestens 5 Sekunden Rücksprung, über Track-/Discgrenzen hinweg,
+begrenzt durch den Buchanfang. Bei verzögertem Stopp mindestens bis zum Beginn
+der leisen Phase. Einschlafanker bleibt separat erhalten. Gain wird beim Abbrechen,
+Verlängern und nach Stopp wiederhergestellt; Systemlautstärke unverändert.
+Während der leisen Phase wird ihr Anfang als Fortschritt gesichert. Ein während
+Prozessabwesenheit abgelaufener Minutentimer spult beim nächsten Start pausiert
+zurück. SDK-Adapter und Upgrade-Grenzen: docs/INTEGRATION.md.
+
+Alle vier Gradle-Prüfungen erfolgreich (-PseparateApp=true).
+48 JVM-Tests bestanden; Lint 0 Fehler, 26 Warnungen.
+18 Instrumentierungstests auf Pixel bestanden: 5 bisherige Room-, 4 neue Backup-,
+5 Gesten-, 3 Theme-/Expressive- und 1 SDK-Volumentest. Backup-Tests prüfen Roundtrip,
+Erhalt anderer Daten, Identitätskonflikte und Transaktions-Rollback bei DB-Fehler.
+Erster UI-Testlauf scheiterte am gesperrten Display; nach Nutzerentsperrung alle
+Tests erfolgreich. Direkter adb-Instrumentierungslauf statt Gradle-Aufräumen:
+App bleibt installiert, anschließender Paketcheck und Start erfolgreich.
+Backup-Karte und Dateidialoge visuell geprüft; erste echte Sicherung unter
+Download/Hoerbuch-Backup-2026-10-28-1317.json auf dem Pixel erstellt (24664 Bytes).
+Wieder eingelesen und Vorschau mit 1 Buch/0 Lesezeichen geprüft, danach abgebrochen.
+Kein Überschreiben echter Hörstände zu Testzwecken, keine Zugangsdaten exportiert.
+Die vorhandene Anmeldung und Bibliothek wurden auf dem Gerät sichtbar bestätigt.
+Akustischer Ende-zu-Ende-Test des Fades mit laufendem Stream noch offen; der
+SDK-Test prüft reale Gain-Halbierung, Stummschaltung und Wiederherstellung ohne Audio.
+APK: app/build/outputs/apk/debug/Hoerbuch-Test.apk.
+
+
+28.10.2026 – Weitere Alltagsfunktionen und dezente Suche:
+Bibliothekssuche nach Titel/Autor mit Statusfilter; fünf persistente Sortieroptionen.
+Nach Nutzerkorrektur Suche und Sortierung als kleine Symbole unter den Statusfiltern;
+Suchfeld nur auf Antippen, Schließen hebt die Suche auf. Weiterhören bleibt oben.
+Bis zu zehn persistente Positionen vor Sprüngen pro Buch; Rückgängig und Verlauf im
+Player, konsumierte Einträge werden entfernt. Lesezeichen bleiben unabhängig.
+Optionaler Rücksprung 5/10/15/30 s nach mindestens 5 min Pause (Standard Aus), mit
+monotoner Zeit und Boot-Zähler. Keine automatische Wiedergabe beim Appstart.
+Abschnitt/Gesamt-Umschaltung mit passenden Zeiten und präzisem Abschnittsspulen;
+zuletzt verwendete Minutentimerdauer als Direktwahl. Geführter leerer Bibliotheksstart.
+Verständliche Katalogfehler; persistente Wiedergabefehler mit explizitem Wiederholen.
+Nach 20 s Pufferung Pause mit Wiederholen. Bei Fehlern keine Überschreibung der letzten
+bekannten Hörposition durch nachträgliche Engine-Positionswerte.
+Anpassungen für große Schrift: Coverlimit, Kartenbreite, umbrechende Timeroptionen,
+zweireihige Playeraktionen; 48-dp-Optionsknöpfe und benannte Slider-Zeiten.
+
+Room-Schema 2: position_history + books.lastPlayedAt; Migration 1→2 ohne Datenverlust.
+Historie/letzter Wiedergabestart werden in neuen Backups mitgesichert; alte Backups
+bleiben lesbar. Letzte Wiedergabe wird erst bei tatsächlichem PLAYING gesetzt.
+Alle vier Buildprüfungen erfolgreich; 53 JVM-Tests bestanden. Lint: 0 Fehler,
+33 Warnungen (u. a. Bibliotheksversionen und KTX-Stil).
+Gesamtlauf: 23 Gerätetests bestanden. Nach abschließender Suchkorrektur alle drei
+betroffenen ListeningUiTest-Tests erneut bestanden. Geprüft: Migration aus dem
+exportierten v1-Schema mit vorhandenen Hörständen/Lesezeichen/Anker; Verlaufslimit,
+Wiederöffnen, Backup und Löschen; Suche nach Autor, Einstieg und zugängliches
+Abschnittsspulen bei 1,6-facher Schriftgröße. Erster Migrationstest hatte einen Fehler
+beim Lesen optionaler Schema-Indizes; Testvorbereitung korrigiert, Nachläufe erfolgreich.
+Bibliothek mit dezenter Suche und Vollplayer auf dem Pixel visuell geprüft. Vorhandenes
+Buch und Hörstand sichtbar erhalten. Direkter adb-Testlauf ohne Deinstallation;
+aktuelle Test-App installiert und geöffnet. APK: app/build/outputs/apk/debug/Hoerbuch-Test.apk.
+Noch offen: echter Netzabbruch/abgelaufene Sitzung während laufendem Stream, vollständiger
+TalkBack-Hörtest und akustischer Ende-zu-Ende-Test des Timer-Fades. Semantik-, UI-, SDK-
+Gain- und Datenbanktests ersetzen diese manuellen Prüfungen nicht.
+
+
+28.10.2026 – Cover-Cache und reduzierte Abfragen bei Pause:
+Neuer gemeinsamer ArtworkStore: 16 MiB Bitmap-RAM, 64 MiB privater Dateicache,
+gebündelte konkurrierende Ladevorgänge, SHA-256-Dateinamen, begrenzte Downloads
+und Bildabmessungen. Ältere Dateien werden verdrängt, defekte Bilder neu geladen;
+Cache-Schreibfehler verhindern die Anzeige nicht. Keine neue Abhängigkeit.
+Player-Abfragen bei inaktiver Pause auf 1 Hz reduziert; Wiedergabe, Minutentimer
+und ausstehende Positionssprünge behalten 10 Hz. SDK-Laden/Preloading unverändert.
+Alle vier Gradle-Prüfungen erfolgreich; 53 JVM-Tests, Lint 0 Fehler/33 Warnungen.
+Gezielter Pixel-Lauf: 3 neue ArtworkStore-Tests und 1 SDK-Lautstärketest bestanden.
+Cachetests mit synthetischen Bildern/isoliertem Verzeichnis: parallele Ansichten
+teilen einen Download, neue Store-Instanz liest ohne Netzwerk aus Datei, defekte
+Datei wird ersetzt, ungültige Daten/Hosts verworfen, Dateibudget eingehalten.
+Kein kompletter erneuter UI-/Datenbanktestlauf, keine Messung realer TIDAL-Requests
+oder Akkulaufzeit; akustischer Timer-Ende-zu-Ende-Test weiterhin offen.
+Test-App per adb install -r aktualisiert und geöffnet, keine Datenlöschung.
+APK: app/build/outputs/apk/debug/Hoerbuch-Test.apk.
+
+28.10.2026 - Kompakter Mini-Player:
+Fortschrittsanzeige in die Textspalte zwischen Cover und Play-Taste verschoben;
+keine durchgehende Linie am unteren Kartenrand mehr. Cover 48 dp, gleichmaessige
+Abstaende, 48-dp-Play-Touchziel und kompakteres Symbol. Wellenverhalten erhalten.
+Alle vier Gradle-Pruefungen erfolgreich; auf Pixel installiert und die pausierte
+Ansicht mit vorhandenem Buch visuell geprueft. Keine neuen Instrumentierungstests
+fuer diese Layoutaenderung. App-Daten erhalten. APK: Hoerbuch-Test.apk.

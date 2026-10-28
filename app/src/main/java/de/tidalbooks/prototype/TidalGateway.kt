@@ -94,13 +94,7 @@ class OfficialTidalGateway(private val app: Application, private val scope: Coro
         val request = Request.Builder().url(parsed).header("Authorization", "Bearer $token")
             .header("Accept", "application/vnd.api+json").build()
         http.newCall(request).execute().use {
-            check(it.isSuccessful) { when(it.code) {
-                401 -> "TIDAL HTTP 401: Bitte erneut anmelden."
-                403 -> "TIDAL HTTP 403: Der Client hat keinen Zugriff auf diese Funktion."
-                404 -> "TIDAL HTTP 404: Album oder Track nicht verfügbar."
-                429 -> "TIDAL HTTP 429: Zu viele Anfragen. Bitte später erneut versuchen."
-                else -> "TIDAL-Anfrage fehlgeschlagen (HTTP ${it.code})."
-            } }
+            if (!it.isSuccessful) throw CatalogFailure(it.code)
             JSONObject(it.body?.string() ?: error("Leere TIDAL-Antwort."))
         }
     }
@@ -144,7 +138,7 @@ class OfficialTidalGateway(private val app: Application, private val scope: Coro
         val request = Request.Builder().url("https://api.tidal.com/v1/$path")
             .header("Authorization", "Bearer $token").build()
         http.newCall(request).execute().use { response ->
-            check(response.isSuccessful) { "Alternativer TIDAL-Katalog: HTTP ${response.code}." }
+            if (!response.isSuccessful) throw CatalogFailure(response.code)
             JSONObject(response.body?.string() ?: "{}")
         }
     }
