@@ -1,6 +1,6 @@
 # TIDAL Hörbuch für Android
 
-Private Androidapp mit lokaler Hörbibliothek, gespeichertem Hörfortschritt pro Buch, Lesezeichen, Einschlaftimer und Material-You-Oberfläche. Version **0.3.3-private**, Android 8 oder neuer. Die alternative TIDAL-Anmeldung und vollständige Wiedergabe wurden auf dem angeschlossenen Pixel 9 Pro nachgewiesen. Es gibt keinen eigenen Server oder zusätzlichen App-Account.
+Private Androidapp mit lokaler Hörbibliothek, gespeichertem Hörfortschritt pro Buch, Lesezeichen, Einschlaftimer und Material-You-Oberfläche. Version **0.4.0-private**, Android 8 oder neuer. Die alternative TIDAL-Anmeldung und vollständige Wiedergabe wurden auf dem angeschlossenen Pixel 9 Pro nachgewiesen. Es gibt keinen eigenen Server oder zusätzlichen App-Account.
 
 ## Verwendung
 
@@ -115,3 +115,19 @@ Kacheln und Liste. Die Auswahl bleibt nach App-Neustarts erhalten. Die Listenans
 zeigt Cover, Titel, Autor, Hörstatus, Restzeit und Fortschritt. Antippen öffnet das Buch
 pausiert; das Optionsmenü erlaubt weiterhin das Entfernen mit Bestätigung. Suche,
 Statusfilter, Sortierung und „Weiterhören“ funktionieren in beiden Ansichten.
+
+
+## Widget und Nachtmodus (0.4.0)
+
+Einstellungen → Homescreen-Widget bietet eine bedienbare Vorschau und „Widget hinzufügen“.
+Das Widget steuert Start/Pause, 30 Sekunden zurück, Lesezeichen und den zuletzt verwendeten
+Minutentimer (erneutes Tippen schaltet ihn aus). Die Mondsichel öffnet direkt den Nachtmodus.
+Systemaktualisierungen starten niemals Audio. Countdown läuft mit monotoner Deadline;
+Cover werden nur aus dem bestehenden Cache gelesen. Während Wiedergabe wird der Fortschritt
+höchstens alle 15 Sekunden aktualisiert; Steuerungszustände ändern sich unmittelbar.
+
+Nachtmodus über die Mondsichel im Player oder Einstellungen → Nachtmodus öffnen:
+schwarze Oberfläche, große Transporttasten, Lesezeichen, Timerwahl/Verlängern/Abbrechen
+und Rückkehr zum Einschlafanker. Die einstellbare Dimmung gilt nur für das App-Fenster;
+Schließen stellt die vorherige Helligkeit wieder her. Systemhelligkeit und Farbpräferenzen
+bleiben erhalten, der Bildschirm darf sich weiterhin normal ausschalten.

@@ -254,3 +254,19 @@ bestehende Tests für Suche, Einstieg und Abschnittsspulen mit großer Schrift.
 Ursprüngliche App mit bisherigem Schlüssel auf dem Pixel aktualisiert.
 Listenansicht mit echten Büchern visuell geprüft; nach force-stop/Neustart
 weiterhin Listenansicht. Testdatenbank unverändert, keine Nutzerdaten gelöscht.
+
+
+28.10.2026 – Widget und Nachtmodus 0.4.0-private (versionCode 12)
+AppWidgetProvider/RemoteViews mit privaten, unveränderlichen PendingIntents, direkten
+Wiedergabe-/Lesezeichen-/Timeraktionen und Einstieg in den Nachtmodus. Keine Wiedergabe
+bei APPWIDGET_UPDATE oder Neustart. Gemeinsamer Player und persistierte Bibliothek.
+Nachtmodus mit appbezogener Fensterdimmung und Wiederherstellung beim Schließen.
+Build/AndroidTest-APK/Android Lint erfolgreich; 61 JVM-Tests bestanden.
+Fünf neue Komponenten-Gerätetests bestanden (Nachtmodus und native Widgetansicht),
+zusätzlicher Einstiegstest nach Korrektur seiner ActivityScenario-Aufräumlogik bestanden.
+Widget im echten Smart Launcher geprüft: Start im Hintergrund mit FULL, rund zehn
+Sekunden Wiedergabe und Pause, ohne die Launcher-Ansicht zu verlassen. Widget-Mondsichel
+öffnet den Nachtmodus; dieser wurde visuell geprüft. Nutzerbücher/Anmeldung erhalten.
+Neue zusätzliche Cache- und Vorschau-Zugänglichkeitstests sind kompiliert, wurden auf
+Nutzerwunsch zur Zeitersparnis nicht zusätzlich auf dem Gerät ausgeführt.
+Ursprüngliche App mit vorhandenem Schlüssel aktualisiert. Kein Room-Schemawechsel.

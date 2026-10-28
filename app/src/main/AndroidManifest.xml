@@ -23,6 +23,10 @@
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
+        <receiver android:name=".AudiobookWidget" android:exported="false" android:label="@string/widget_name">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/audiobook_widget_info" />
+        </receiver>
         <service android:name=".PlaybackService" android:exported="false" android:foregroundServiceType="mediaPlayback">
             <intent-filter><action android:name="androidx.media3.session.MediaSessionService" /></intent-filter>
         </service>

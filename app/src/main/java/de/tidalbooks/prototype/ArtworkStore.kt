@@ -28,19 +28,29 @@ internal class ArtworkStore(
     private val diskLock = Any()
     fun peek(url: String): Bitmap? = memory.get(url)
 
+    /** Widget receivers may read existing artwork without waiting for network requests. */
+    suspend fun loadCached(url: String): Bitmap? = withContext(Dispatchers.IO) {
+        if (!validArtworkUrl(url)) return@withContext null
+        memory.get(url)?.let { return@withContext it }
+        val file = cacheFile(url)
+        val bitmap = synchronized(diskLock) {
+            runCatching {
+                if (file.length() in 1..MAX_ARTWORK_BYTES.toLong()) decode(file.readBytes()) else null
+            }.getOrNull()?.also { file.setLastModified(System.currentTimeMillis()) }
+        }
+        bitmap?.also { memory.put(url,it) }
+    }
+
+    private fun cacheFile(url: String): File = File(directory,
+        MessageDigest.getInstance("SHA-256").digest(url.toByteArray()).joinToString("") { "%02x".format(it) } + ".cover")
+
     suspend fun load(url: String): Bitmap? = withContext(Dispatchers.IO) {
         if (!validArtworkUrl(url)) return@withContext null
         locks[(url.hashCode() and Int.MAX_VALUE) % locks.size].withLock {
             memory.get(url)?.let { return@withLock it }
-            val name = MessageDigest.getInstance("SHA-256").digest(url.toByteArray())
-                .joinToString("") { "%02x".format(it) } + ".cover"
-            val file = File(directory, name)
-            val cached = synchronized(diskLock) {
-                runCatching {
-                    if (file.length() in 1..MAX_ARTWORK_BYTES.toLong()) decode(file.readBytes()) else null
-                }.getOrNull()?.also { file.setLastModified(System.currentTimeMillis()) }
-            }
-            if (cached != null) { memory.put(url, cached); return@withLock cached }
+            loadCached(url)?.let { return@withLock it }
+            val file = cacheFile(url)
+            val name = file.name
             val bytes = runCatching { fetch(url) }.getOrNull() ?: return@withLock null
             val bitmap = runCatching { decode(bytes) }.getOrNull() ?: return@withLock null
             memory.put(url, bitmap)

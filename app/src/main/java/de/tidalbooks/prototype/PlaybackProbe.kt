@@ -80,6 +80,11 @@ class PlaybackProbe(private val app: ProbeApp, private val gateway: OfficialTida
             finally { mutable.update { it.copy(libraryReady = true) } }
         }
         scope.launch { while (isActive) { tick(); delay(if (state.value.requestedPlay || state.value.playing || timer.deadlineMs != null || pendingSeek != null) 100L else 1_000L) } }
+        scope.launch {
+            state.map(WidgetSnapshot::from).distinctUntilChanged().collect { snapshot ->
+                if (AudiobookWidget.hasInstances(app)) runCatching { AudiobookWidget.update(app,snapshot) }
+            }
+        }
     }
 
     fun notify(message: String) { mutable.update { it.copy(message = message) } }

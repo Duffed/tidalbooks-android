@@ -56,4 +56,17 @@ class ArtworkStoreTest {
         assertTrue(directory.listFiles()!!.sumOf { it.length() } <= bytes.size.toLong())
         assertNotNull(ArtworkStore(directory) { error("Cached newest image expected") }.load(url + "?second"))
     }
+
+    @Test fun widgetCacheReadsNeverTriggerNetworkAndSurviveANewStore() = runBlocking {
+        val bytes = image()
+        val calls = AtomicInteger()
+        val store = ArtworkStore(directory) { calls.incrementAndGet(); bytes }
+        assertNull(store.loadCached(url))
+        assertEquals(0,calls.get())
+        assertNotNull(store.load(url))
+        val reopened = ArtworkStore(directory) { error("Widget must never fetch network artwork") }
+        assertEquals(32,reopened.loadCached(url)!!.width)
+        assertNull(reopened.loadCached(url+"?missing"))
+        assertEquals(1,calls.get())
+    }
 }

@@ -13,6 +13,7 @@ class MainActivity : ComponentActivity() {
     private var sharedInput by mutableStateOf("")
     private var shareNonce by mutableIntStateOf(0)
     private var openPlayerNonce by mutableIntStateOf(0)
+    private var nightModeNonce by mutableIntStateOf(0)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -20,7 +21,7 @@ class MainActivity : ComponentActivity() {
         playback.refreshLogin()
         setContent {
             val state by playback.state.collectAsStateWithLifecycle()
-            AudiobookTheme { LibraryApp(state,playback,sharedInput,shareNonce,openPlayerNonce) }
+            AudiobookTheme { LibraryApp(state,playback,sharedInput,shareNonce,openPlayerNonce,nightModeNonce) }
         }
     }
     override fun onNewIntent(intent: Intent) {
@@ -33,6 +34,9 @@ class MainActivity : ComponentActivity() {
         }
         if (intent.getBooleanExtra("openPlayer",false)) {
             openPlayerNonce++; intent.removeExtra("openPlayer")
+        }
+        if (intent.getBooleanExtra("openNightMode",false)) {
+            nightModeNonce++; intent.removeExtra("openNightMode")
         }
         if (intent.action == Intent.ACTION_SEND && intent.type == "text/plain") {
             val text = intent.getStringExtra(Intent.EXTRA_TEXT).orEmpty()

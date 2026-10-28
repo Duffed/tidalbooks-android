@@ -62,6 +62,10 @@ import java.util.Date
 import java.util.Locale
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
 
 fun clock(ms: Long): String {
     val seconds = ms.coerceAtLeast(0)/1000
@@ -74,7 +78,7 @@ internal fun durationLabel(ms: Long): String {
 }
 
 @Composable
-fun LibraryApp(s: ProbeState, playback: PlaybackProbe, sharedInput: String, shareNonce: Int, openPlayerNonce: Int) {
+fun LibraryApp(s: ProbeState, playback: PlaybackProbe, sharedInput: String, shareNonce: Int, openPlayerNonce: Int, nightModeNonce: Int = 0) {
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var playerOpen by rememberSaveable { mutableStateOf(false) }
     var sheet by rememberSaveable { mutableStateOf<String?>(null) }
@@ -83,12 +87,14 @@ fun LibraryApp(s: ProbeState, playback: PlaybackProbe, sharedInput: String, shar
     var rename by remember { mutableStateOf<StoredBookmark?>(null) }
     var remove by remember { mutableStateOf<LibraryBook?>(null) }
     var restart by remember { mutableStateOf(false) }
+    var nightOpen by rememberSaveable { mutableStateOf(false) }
     val snackbar = remember { SnackbarHostState() }
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
     val scope = rememberCoroutineScope()
     LaunchedEffect(shareNonce) { if (shareNonce > 0 && sharedInput.isNotBlank()) { link = sharedInput; sheet = "add" } }
     LaunchedEffect(openPlayerNonce) { if (openPlayerNonce > 0) playerOpen = true }
+    LaunchedEffect(nightModeNonce) { if (nightModeNonce > 0) nightOpen = true }
     LaunchedEffect(s.books,s.busy,importingId) {
         if (importingId != null && !s.busy && s.books.any { it.id == importingId }) {
             importingId = null; sheet = null; playerOpen = true
@@ -131,7 +137,7 @@ fun LibraryApp(s: ProbeState, playback: PlaybackProbe, sharedInput: String, shar
                         0 -> LibraryScreen(s,Modifier.padding(padding),openBook,{ sheet = "add" },{ remove = it },{ tab = 2 })
                         1 -> BookmarkScreen(s.bookmarks,Modifier.padding(padding),onOpen = { playback.openBookmark(it); playerOpen = true },
                             onRename = { rename = it },onDelete = playback::deleteBookmark)
-                        else -> SettingsScreen(s,Modifier.padding(padding),playback)
+                        else -> SettingsScreen(s,Modifier.padding(padding),playback) { nightOpen = true }
                     }
                 }
             }
@@ -146,7 +152,7 @@ fun LibraryApp(s: ProbeState, playback: PlaybackProbe, sharedInput: String, shar
                 PlayerScreen(s,onBack = { playerOpen = false },onPlay = toggle,onSkip = playback::skip,
                     onSeek = playback::seekAbsolute,onBookmark = { playback.addBookmark(); haptic.performHapticFeedback(HapticFeedbackType.LongPress) },
                     onTimer = { sheet = "timer" },onChapters = { sheet = "chapters" },onMarks = { sheet = "marks" },
-                    onFinished = playback::markCompleted,onRestart = { restart = true },onHistory = { sheet = "history" },onUndo = { s.history.firstOrNull { it.bookId == s.album?.id }?.let(playback::restoreHistory) },onRetry = playback::retryPlayback,snackbar = snackbar)
+                    onFinished = playback::markCompleted,onRestart = { restart = true },onHistory = { sheet = "history" },onUndo = { s.history.firstOrNull { it.bookId == s.album?.id }?.let(playback::restoreHistory) },onRetry = playback::retryPlayback,snackbar = snackbar,onNightMode = { nightOpen = true })
             }
         }
     }
@@ -209,6 +215,12 @@ fun LibraryApp(s: ProbeState, playback: PlaybackProbe, sharedInput: String, shar
         text = { Text("Der Hörfortschritt beginnt wieder am Anfang. Deine Lesezeichen bleiben erhalten.") },
         confirmButton = { TextButton(onClick = { playback.restartBook(play = true); restart = false }) { Text("Von vorne starten") } },
         dismissButton = { TextButton(onClick = { restart = false }) { Text("Abbrechen") } })
+    if (nightOpen) Dialog(onDismissRequest = { nightOpen = false },
+        properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false, dismissOnClickOutside = false)) {
+        NightPlayer(s,onClose = { nightOpen = false },onPlay = toggle,onSkip = playback::skip,
+            onBookmark = { playback.addBookmark() },onTimer = playback::startTimer,onTrackEnd = playback::trackEndTimer,
+            onExtendTimer = playback::extendTimer,onCancelTimer = playback::cancelTimer,onSleepStart = playback::returnToSleepStart)
+    }
 }
 
 @Composable
@@ -402,7 +414,7 @@ private fun MiniPlayer(s: ProbeState, onOpen: () -> Unit, onPlay: () -> Unit, em
 
 @Composable
 internal fun PlayerScreen(s: ProbeState,onBack: () -> Unit,onPlay: () -> Unit,onSkip: (Long) -> Unit,onSeek: (Long) -> Unit,
-    onBookmark: () -> Unit,onTimer: () -> Unit,onChapters: () -> Unit,onMarks: () -> Unit,onFinished: () -> Unit,onRestart: () -> Unit,onHistory: () -> Unit,onUndo: () -> Unit,onRetry: () -> Unit,snackbar: SnackbarHostState) {
+    onBookmark: () -> Unit,onTimer: () -> Unit,onChapters: () -> Unit,onMarks: () -> Unit,onFinished: () -> Unit,onRestart: () -> Unit,onHistory: () -> Unit,onUndo: () -> Unit,onRetry: () -> Unit,snackbar: SnackbarHostState,onNightMode: (() -> Unit)? = null) {
     val album = s.album ?: return
     val total = album.tracks.sumOf { it.durationMs }
     val elapsed = elapsedBookMs(album.tracks,s.index,s.positionMs)
@@ -444,6 +456,7 @@ internal fun PlayerScreen(s: ProbeState,onBack: () -> Unit,onPlay: () -> Unit,on
                 Text("JETZT HÖREN",style = MaterialTheme.typography.labelMedium,color = MaterialTheme.colorScheme.onSurfaceVariant)
             } },
             navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Rounded.KeyboardArrowDown,"Player minimieren") } },actions = {
+                if (onNightMode != null) IconButton(onClick = onNightMode) { Icon(Icons.Rounded.Bedtime,"Nachtmodus öffnen") }
                 Box {
                     IconButton(onClick = { menu = true }) { Icon(Icons.Rounded.MoreVert,"Hörbuchoptionen") }
                     DropdownMenu(expanded = menu,onDismissRequest = { menu = false }) {
@@ -628,11 +641,22 @@ private fun TimerSheet(s: ProbeState,playback: PlaybackProbe,onDismiss: () -> Un
 }
 
 @Composable
-private fun SettingsScreen(s: ProbeState,modifier: Modifier,playback: PlaybackProbe) {
+private fun SettingsScreen(s: ProbeState,modifier: Modifier,playback: PlaybackProbe,onNightMode: () -> Unit) {
     val context = LocalContext.current
     LazyColumn(modifier.fillMaxSize(),contentPadding = PaddingValues(20.dp),verticalArrangement = Arrangement.spacedBy(18.dp)) {
         item(key = "listening") { ListeningSettingsCard(s.resumeRewindSeconds, playback::setResumeRewind) }
         item(key = "appearance") { ThemeSettingsCard() }
+        item(key = "night") { SettingsCard(Icons.Rounded.Bedtime,"Nachtmodus","Große Tasten, schwarzer Hintergrund und eine gedimmte App-Ansicht zum Einschlafen.") {
+            TextButton(onClick = onNightMode) { Text("Nachtmodus öffnen") }
+        } }
+        item(key = "widget") { SettingsCard(Icons.Rounded.Widgets,"Homescreen-Widget","Start/Pause, 30 Sekunden zurück, Lesezeichen und dein letzter Einschlaftimer direkt auf dem Startbildschirm.") {
+            WidgetPreview(WidgetSnapshot.from(s),Modifier.fillMaxWidth().height(160.dp))
+            val manager = AppWidgetManager.getInstance(context)
+            if (manager.isRequestPinAppWidgetSupported) TextButton(onClick = {
+                manager.requestPinAppWidget(ComponentName(context,AudiobookWidget::class.java),null,null)
+            }) { Text("Widget hinzufügen") }
+            else Text("Startbildschirm lange drücken → Widgets → Hörbuch.",style = MaterialTheme.typography.bodySmall)
+        } }
         item(key = "backup") { BackupSettingsCard(s, playback) }
         item {
             Surface(shape = RoundedCornerShape(28.dp),color = MaterialTheme.colorScheme.secondaryContainer) {
