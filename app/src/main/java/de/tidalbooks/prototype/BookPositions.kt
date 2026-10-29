@@ -3,7 +3,7 @@ package de.tidalbooks.prototype
 data class BookPosition(val index: Int, val positionMs: Long)
 
 fun bookPosition(tracks: List<Track>, absoluteMs: Long): BookPosition {
-    require(tracks.isNotEmpty()) { "Das Hörbuch enthält keine Tracks." }
+    require(tracks.isNotEmpty()) { translated("Das Hörbuch enthält keine Tracks.") }
     var left = absoluteMs.coerceIn(0, (tracks.sumOf { it.durationMs }-1).coerceAtLeast(0))
     tracks.forEachIndexed { index, track ->
         if (left < track.durationMs || index == tracks.lastIndex) return BookPosition(index, left.coerceAtLeast(0))

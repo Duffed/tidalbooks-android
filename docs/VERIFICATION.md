@@ -337,3 +337,132 @@ weiter auf Wischen und lässt sich bis Anfang/Ende scrollen; Ansichtswechsel,
 Öffnen ohne Autoplay, Wiederherstellung und Autorensuche erhalten.
 Vorhandene UI-Tests an fehlende Scrollaktion bei passendem Inhalt angepasst.
 Auf Pixel per install -r auf 0.4.7 aktualisiert, App-Daten erhalten.
+
+29.10.2026 - Import ohne Playerwechsel und klarere Begriffe:
+Beim Hinzufuegen bleibt ein ausgewaehltes Buch erhalten. Import ruft dann weder
+selectBook noch Engine-Reset/Load auf; Wiedergabe, Pause und Timer bleiben erhalten.
+Ohne Buchauswahl wird das importierte Buch wie bisher pausiert geoeffnet.
+Importdialog oeffnet den Player nur, wenn das importierte Buch ausgewaehlt ist.
+Oberflaeche/Widget: Kapitel statt Abschnitte, Lesezeichen statt Stellen.
+Weiterhoeren bleibt die Bezeichnung zum Fortsetzen; Jetzt hoeren war nicht vorhanden.
+APK und Test-APK gebaut, 61 JVM-Tests bestanden, Lint ohne Fehler. Drei betroffene
+ListeningUiTest-Tests auf Pixel bestanden: Suche, Einstieg, Kapitelspulen bei grosser
+Schrift. Tests an nicht scrollbare Kurzlisten und eindeutige Chipauswahl angepasst.
+Lokale SDK-/Schluesselpfade korrigiert; Lint musste nach Pfadkorrektur neu analysieren.
+Original-App mit bereitgestelltem Schluessel per install -r aktualisiert, keine
+Datenloeschung. Import waehrend echtem laufendem Stream noch nicht am Geraet erprobt.
+APK: app/build/outputs/apk/debug/TIDAL-Hoerbuch.apk.
+
+29.10.2026 – Zweites Design „TIDAL“:
+Unter Einstellungen → Farben & Darstellung → Design zwischen Material Expressive
+und TIDAL wechseln. Auswahl separat in appearance/design gespeichert; bisherige
+Palette und Helligkeit bleiben erhalten. TIDAL verwendet feste schwarze/graue
+Flächen, weiße Steuerelemente, kompakte Cover/Listenzeilen, schlichte Navigation,
+gerade Fortschrittsanzeigen und einen runden Play-Knopf. Keine Datenmigration.
+Vorlage: offizielle Android-Screenshots auf
+https://play.google.com/store/apps/details?id=com.aspiro.tidal
+assembleDebug mit JDK 17 erfolgreich. Auf Pixel mit vorhandenem Schlüssel per
+install -r aktualisiert. Player/Lesezeichen visuell geprüft. Keine zusätzlichen
+Testläufe gemäß Nutzerwunsch. Wiedergabe- und Speicherlogik unverändert.
+
+29.10.2026 – Widget-Optionen im Launcher:
+WidgetSettingsActivity als APPWIDGET_CONFIGURE registriert. reconfigurable erlaubt
+unterstützten Launchern die erneute Konfiguration; ab Android 12 optional beim
+Hinzufügen. Material You/TIDAL mit Vorschau, Übernehmen und Abbrechen. Auswahl
+wie in den App-Einstellungen global für alle Widgets; App-Design unabhängig.
+
+Widget-Deckkraft: eigener gespeicherter Wert 0–100 %, Standard 100 %. Regler in Launcher-Optionen und App-Einstellungen mit Vorschau. Nur separate Hintergrund-ImageView erhält setImageAlpha; Inhalte und Klickflächen bleiben unverändert. Beide Widget-Designs unterstützt.
+
+29.10.2026 – Testfreigabe TIDAL Books 0.5.0-beta1 (versionCode 20)
+Name/Icon aktualisiert; Material Expressive und TIDAL-Design umschaltbar.
+Widget: Material You/TIDAL, Hintergrund-Deckkraft und Launcher-Konfiguration.
+Weiterhören wird ausgeblendet, wenn es dasselbe Buch wie im Mini-Player zeigt.
+TIDAL-Anmeldung steht für neue Nutzer am Anfang der Einstellungen.
+
+Prüfung: assembleDebug, assembleDebugAndroidTest, testDebugUnitTest, lintDebug
+und assembleRelease. 61 JVM-Tests, 37 Android-Gerätetests auf Pixel bestanden;
+abschließend vier ListeningUiTest-Tests einschließlich neuer Weiterhören-Prüfung
+bestanden (insgesamt 38 unterschiedliche Gerätetests). Lint: 0 Fehler, 57 Hinweise.
+Anfänglicher APK-Paketierungsfehler im kombinierten Build; Wiederholung mit
+max-workers=2 erfolgreich. Keine Codekorrektur für diesen Buildfehler erforderlich.
+
+Frische Installation unter eigener ID de.tidalbooks.prototype.firststart:
+leere Bibliothek, nicht angemeldet, kein Autoplay. Konto vom Nutzer bestätigt;
+erster Gerätecode abgelaufen, erneute Anmeldung erfolgreich. Album 270256764
+mit 141 Kapiteln über Android-Teilen importiert. Mehr als eine Minute Wiedergabe;
+Pause bei 1:07, nach force-stop/Neustart derselbe Hörstand und weiterhin pausiert.
+Gerätetests verwenden separate Testdatenbanken; persönliche App-Daten erhalten.
+
+Weitergabe ist ein nicht-debuggbarer Release-Build, signiert mit demselben separat
+verwahrten Entwicklungsschlüssel wie die vorhandene Installation. APK enthält
+keine persönliche Sitzung. Kein Schlüssel und keine local.properties im Paket.
+Einschränkungen: nur Pixel/Android API 37 physisch geprüft; andere Geräte und
+Launcher, echte Telefonanrufe, lange Energiesparphasen und Offline-Fehlerfälle
+nicht erneut manuell geprüft. Frischer Anmelde-/Streamtest im separaten Debug-
+Prüfbuild derselben Quellen; Release-APK zusätzlich als Update/Start geprüft.
+Finale Weitergabe-APK und auf Pixel installierte APK per SHA-256 bytegleich:
+b0cdf213a3630a07a4891d874576cf5a3101f03c1469f713be52481d00e5ac7b
+Paket: distribution/TIDAL-Books-0.5.0-beta1.zip (nur APK, Anleitung, Prüfsumme).
+Persönliche App erfolgreich aktualisiert und gestartet, vorhandener Hörstand sichtbar.
+Die isolierte Erststart-Prüf-App bleibt separat installiert.
+
+29.10.2026 – Deutsch/Englisch, 0.5.0-beta2 (versionCode 21)
+- Gesamte App einschließlich Ersteinrichtung, Player, Filter/Sortierung, Lesezeichen,
+  Timer, Backups, Fehlermeldungen, Widgets und Mediensteuerung lokalisiert.
+- Einstellungen → Sprache: System / Deutsch / English. Native App-Sprache ab
+  API 33; lokale Auswahl mit Activity-Kontext auf API 26–32. Beide Sprachen
+  auch in zukünftigen App-Bundles enthalten, kein Sprachdownload erforderlich.
+- Buchmetadaten und eigene Lesezeichennamen unverändert; stabile Filterwerte und
+  gespeicherte Verlaufsschlüssel bleiben erhalten. Keine Room-Migration.
+- Player-Schalter heißt auf Englisch „Whole book / Chapter“; die Übersicht „Chapters“.
+- assembleDebug, assembleDebugAndroidTest, testDebugUnitTest, lintDebug und
+  assembleRelease erfolgreich. 65 JVM-Tests erfolgreich; Lint 0 Fehler, 58 Warnungen.
+- 40 unterschiedliche Android-Tests auf Pixel in isolierter Erststart-App geprüft:
+  erster Gesamtlauf 39 erfolgreich und eine zu enge neue Testabfrage (derselbe
+  Buchtitel in Weiterhören und Bibliotheksliste). Abfrage korrigiert; beide
+  EnglishUiTest-Tests danach erfolgreich. Tests betreffen u.a. Sprachwechsel,
+  Filteridentität, unveränderte Buchtitel, englische Ersteinrichtung und beide Widgets.
+- Englische Oberfläche per Android-App-Sprache auf Pixel geöffnet; Einstellungen,
+  Bibliothek und englische Widget-Vorschau geprüft. API 26–32 nicht physisch geprüft.
+  Kein erneuter kompletter Anmelde-/Streamingtest erforderlich/durchgeführt.
+- Finale APK nicht debuggbar, identisches Signaturzertifikat wie beta1.
+- Reguläre App per install -r aktualisiert und gestartet; keine Daten gelöscht.
+- Weitergabe: distribution/TIDAL-Books-0.5.0-beta2.zip (APK, DE/EN-Anleitungen, SHA256).
+- SHA-256 der Weitergabe-APK:
+  f55ff19f85aa5659a08d6d8b20aa7d07028a6cb21c750c37ee5aa969c7482002
+Installierte APK zurückgelesen: SHA-256 stimmt exakt mit der Weitergabe-APK überein.
+
+29.10.2026 – Kompakte, aufklappbare Einstellungen (0.5.0-beta3, versionCode 22)
+- Sechs Abschnitte: TIDAL-Konto, Wiedergabe, Darstellung, Widget, Backup und Über die App.
+- Überschriften zeigen aktuelle Werte; jeweils ein Bereich öffnet sich direkt darunter.
+  Erneuter Tipp schließt ihn. Kurze Expand-/Fade-Animation, keine Unterseiten.
+- Sprache und Design unter Darstellung; Sprungweite, Rücksprung und Benachrichtigung
+  unter Wiedergabe. Widget-Vorschau und Erklärungen nur im geöffneten Abschnitt.
+- Versionsblock in About mit 20 dp horizontalem und 16 dp vertikalem Innenabstand.
+- Deutsch und Englisch ergänzt. Wiedergabe-, Speicher- und Anmeldelogik unverändert.
+- assembleDebug, assembleDebugAndroidTest, testDebugUnitTest, lintDebug und
+  assembleRelease erfolgreich; 65 JVM-Tests, Lint 0 Fehler/58 Warnungen.
+  Die abschließende reine Padding-Korrektur zusätzlich als Debug und Release gebaut.
+- Englische Übersicht sowie aufgeklappte Konto-/About-Abschnitte auf Pixel gesichtet.
+  Keine erneuten Instrumentierungstests; bestehende Tests erfolgreich kompiliert.
+- Weitergabepaket: distribution/TIDAL-Books-0.5.0-beta3.zip mit deutscher/englischer Anleitung.
+Reguläre App per install -r aktualisiert und gestartet, keine Daten gelöscht.
+Installierte und weitergegebene APK bytegleich; SHA-256:
+b1abe0bcbf106ef99ba09484c260ee599bb6ce24587d11f2db5056a6984ecd91
+
+29.10.2026 – Sprachwechsel-Absturz behoben (0.5.0-beta4, versionCode 23)
+- Crashprotokoll: IllegalStateException „visitAncestors called on an unattached node“
+  in Material3 ChildSemanticsNode.applySemantics beim Sprachwechsel.
+- Einstellungs-Kopfzeilen verwenden eine normale Row statt ListItem der gepinnten
+  Material3-Version. Lokalisierte Zustandsbeschreibungen werden während der
+  Composition aufgelöst, nicht beim späteren Durchlaufen der Semantik-Knoten.
+- Bedienhilfen, aufklappbare Bereiche und gespeicherte Einstellungen erhalten.
+- Neuer LanguageRecreationTest verwendet die echte MainActivity und die native
+  Sprachwahl in der isolierten firststart-App: Englisch, Deutsch, Englisch,
+  anschließend expliziter Activity-Neuaufbau. Sprache und geöffneter Bereich erhalten;
+  auf Pixel erfolgreich (1 Test). Die ursprüngliche Prüfsprache wird wiederhergestellt.
+- Kein Löschen von App-Daten, keine Änderung an Anmeldung, Room oder Wiedergabelogik.
+Alle vorgeschriebenen Builds/Prüfungen erfolgreich, 65 JVM-Tests; Lint 0 Fehler/58 Warnungen.
+Finale Release-APK auf dem Pixel per install -r installiert und gestartet.
+Installierte APK und Weitergabe-APK bytegleich. Paket: distribution/TIDAL-Books-0.5.0-beta4.zip.
+SHA-256: 80b412c9a6414ad935a712d117c6b9c6e9b289fc39e509eeb3065ca8ae432558

@@ -1,7 +1,7 @@
 <resources>
-    <string name="app_name">Hörbuch</string>
+    <string name="app_name">TIDAL Books</string>
     <string name="playback_channel">Hörbuchwiedergabe</string>
-    <string name="widget_name">Hörbuch-Steuerung</string>
+    <string name="widget_name">TIDAL Books – Steuerung</string>
     <string name="widget_description">Hörbuch fortsetzen, Stellen merken und den Einschlaftimer steuern.</string>
     <string name="widget_title">Dein Hörbuch</string>
     <string name="widget_subtitle">Tippen und Bibliothek öffnen</string>
@@ -11,4 +11,5 @@
     <string name="widget_timer">30 Min.</string>
     <string name="widget_bookmark">Lesezeichen setzen</string>
     <string name="widget_rewind">30 Sekunden zurück</string>
+    <string name="widget_options">Widget-Optionen</string>
 </resources>

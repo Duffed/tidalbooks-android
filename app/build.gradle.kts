@@ -11,22 +11,25 @@ val local = Properties().apply {
 }
 fun quoted(value: String) = "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
 val separateApp = providers.gradleProperty("separateApp").map(String::toBoolean).getOrElse(false)
+val freshInstallCheck = providers.gradleProperty("freshInstallCheck").map(String::toBoolean).getOrElse(false)
 android {
     namespace = "de.tidalbooks.prototype"
     compileSdk = 35
     defaultConfig {
-        applicationId = if (separateApp) "de.tidalbooks.prototype.testapp" else "de.tidalbooks.prototype"
-        manifestPlaceholders["appLabel"] = if (separateApp) "Hörbuch Test" else "@string/app_name"
+        applicationId = if (freshInstallCheck) "de.tidalbooks.prototype.firststart" else if (separateApp) "de.tidalbooks.prototype.testapp" else "de.tidalbooks.prototype"
+        manifestPlaceholders["appLabel"] = if (freshInstallCheck) "TIDAL Books Erststart" else if (separateApp) "TIDAL Books Test" else "@string/app_name"
         minSdk = 26
         targetSdk = 35
-        versionCode = 19
-        versionName = if (separateApp) "0.4.7-private-test" else "0.4.7-private"
+        versionCode = 23
+        versionName = if (separateApp || freshInstallCheck) "0.5.0-beta4-test" else "0.5.0-beta4"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "TIDAL_CLIENT_ID", quoted(local.getProperty("tidal.clientId", "WE3EnCGIVO57t7U0")))
         buildConfigField("String", "TIDAL_SCOPES", quoted(local.getProperty("tidal.scopes", "")))
     }
     sourceSets.getByName("androidTest").assets.srcDir("$projectDir/schemas")
     buildFeatures { compose = true; buildConfig = true }
+    // Both languages must remain available when switched offline, including in future bundles.
+    bundle { language { enableSplit = false } }
     local.getProperty("debug.storeFile")?.let { debugStore ->
         signingConfigs.getByName("debug") {
             storeFile = file(debugStore)
@@ -36,6 +39,11 @@ android {
         }
     }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
+    buildTypes.getByName("release") {
+        // Same separately stored certificate as existing installs; never distribute the key.
+        signingConfig = signingConfigs.getByName("debug")
+        isMinifyEnabled = false
+    }
 }
 kotlin { compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) } }
 dependencies {

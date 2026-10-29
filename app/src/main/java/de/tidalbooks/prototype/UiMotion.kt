@@ -34,14 +34,14 @@ internal fun SoftProgress(value: Float, modifier: Modifier = Modifier, playing: 
 
 @Composable
 internal fun PlayerCover(url: String?, playing: Boolean) {
-    val scale by animateFloatAsState(if (playing) 1f else .96f,
+    val scale by animateFloatAsState(if (playing || LocalTidalDesign.current) 1f else .96f,
         MaterialTheme.motionScheme.defaultSpatialSpec(), label = "Coverbewegung")
     val configuration = androidx.compose.ui.platform.LocalConfiguration.current
     val fontScale = androidx.compose.ui.platform.LocalDensity.current.fontScale
     val coverLimit = (configuration.screenHeightDp * (if (fontScale > 1.2f) .24f else .40f)).coerceIn(140f, 380f).dp
     Box(Modifier.fillMaxWidth().padding(vertical = 6.dp), contentAlignment = androidx.compose.ui.Alignment.Center) {
         BookArtwork(url, Modifier.widthIn(max = coverLimit).fillMaxWidth().aspectRatio(1f).graphicsLayer { scaleX = scale; scaleY = scale }
-            .shadow(18.dp, RoundedCornerShape(28.dp), ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = .2f),
+            .shadow(if (LocalTidalDesign.current) 0.dp else 18.dp, appCorner(28.dp), ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = .2f),
                 spotColor = MaterialTheme.colorScheme.primary.copy(alpha = .16f)), large = true)
     }
 }
@@ -49,6 +49,12 @@ internal fun PlayerCover(url: String?, playing: Boolean) {
 @Composable
 internal fun MotionIconButton(onClick: () -> Unit, modifier: Modifier = Modifier,
     prominent: Boolean = false, content: @Composable () -> Unit) {
+    if (LocalTidalDesign.current) {
+        if (prominent) FilledIconButton(onClick = onClick, modifier = modifier,
+            shape = androidx.compose.foundation.shape.CircleShape, content = content)
+        else IconButton(onClick = onClick, modifier = modifier, content = content)
+        return
+    }
     val interactions = remember { MutableInteractionSource() }
     if (prominent) FilledIconButton(onClick = onClick, modifier = modifier.pressScale(interactions),
         interactionSource = interactions, shapes = IconButtonDefaults.shapes(), content = content)

@@ -44,7 +44,7 @@ class ExpandablePlayerTest {
                                 var position by remember { mutableFloatStateOf(.1f) }
                                 ExpressiveSeekBar(position,{ position = it },{},Modifier.fillMaxWidth().testTag("seek"))
                             }
-                            items(20) { Text("Abschnitt $it",Modifier.fillMaxWidth().height(80.dp)) }
+                            items(20) { Text("Kapitel $it",Modifier.fillMaxWidth().height(80.dp)) }
                         } else Text("Minimieren", Modifier.fillMaxSize().clickable { expanded = false })
                     }
                 }

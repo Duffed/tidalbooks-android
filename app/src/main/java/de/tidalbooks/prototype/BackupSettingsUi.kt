@@ -19,7 +19,7 @@ import java.util.Date
 import java.util.Locale
 
 @Composable
-internal fun BackupSettingsCard(s: ProbeState, playback: PlaybackProbe) {
+internal fun BackupSettingsCard(s: ProbeState, playback: PlaybackProbe, showTitle: Boolean = true) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var reading by remember { mutableStateOf(false) }
@@ -33,31 +33,31 @@ internal fun BackupSettingsCard(s: ProbeState, playback: PlaybackProbe) {
             try {
                 preview = withContext(Dispatchers.IO) {
                     context.contentResolver.openInputStream(uri)?.use(BackupCodec::read)
-                        ?: error("Datei nicht lesbar")
+                        ?: error(translated("Datei nicht lesbar"))
                 }
             } catch (e: CancellationException) { throw e }
-            catch (_: Exception) { playback.notify("Die Datei ist keine gültige, unterstützte Hörbuch-Sicherung (maximal 10 MB). Es wurde nichts verändert.") }
+            catch (_: Exception) { playback.notify(translated("Die Datei ist keine gültige, unterstützte Hörbuch-Sicherung (maximal 10 MB). Es wurde nichts verändert.")) }
             finally { reading = false }
         }
     }
     Surface(shape = RoundedCornerShape(24.dp), color = MaterialTheme.colorScheme.surfaceContainerLow) {
         Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Backup & Wiederherstellung", style = MaterialTheme.typography.titleMedium)
-            Text("Sichere Bücher, Hörstände, Lesezeichen und deine Stelle vor dem Einschlafen als Datei. Ohne Audiodateien oder TIDAL-Anmeldung. Bewahre die Datei an einem sicheren Ort auf.",
+            if (showTitle) Text(translated("Backup & Wiederherstellung"), style = MaterialTheme.typography.titleMedium)
+            Text(translated("Sichere Bücher, Hörstände, Lesezeichen und deine Stelle vor dem Einschlafen als Datei. Ohne Audiodateien oder TIDAL-Anmeldung. Bewahre die Datei an einem sicheren Ort auf."),
                 style = MaterialTheme.typography.bodyMedium)
             Button(onClick = { create.launch("Hoerbuch-Backup-${SimpleDateFormat("yyyy-MM-dd-HHmm", Locale.ROOT).format(Date())}.json") },
-                enabled = s.libraryReady && !s.busy && !reading) { Text("Backup speichern") }
+                enabled = s.libraryReady && !s.busy && !reading) { Text(translated("Backup speichern")) }
             OutlinedButton(onClick = { open.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) },
-                enabled = s.libraryReady && !s.busy && !reading) { Text(if (reading) "Datei wird geprüft …" else "Backup wiederherstellen") }
-            Text("Auf einem neuen Gerät meldest du dich anschließend erneut bei TIDAL an. Aktive Timer werden nicht übernommen.", style = MaterialTheme.typography.bodySmall)
+                enabled = s.libraryReady && !s.busy && !reading) { Text(if (reading) translated("Datei wird geprüft …") else translated("Backup wiederherstellen")) }
+            Text(translated("Auf einem neuen Gerät meldest du dich anschließend erneut bei TIDAL an. Aktive Timer werden nicht übernommen."), style = MaterialTheme.typography.bodySmall)
         }
     }
     preview?.let { backup ->
-        AlertDialog(onDismissRequest = { preview = null }, title = { Text("Backup wiederherstellen?") },
-            text = { Text("${backup.books.size} Hörbücher und ${backup.bookmarks.size} Lesezeichen.\n\nBei enthaltenen Büchern ersetzt die Sicherung die Hörstände – auch durch ältere Stände. Andere Bücher und zusätzliche Lesezeichen bleiben erhalten. Die Wiedergabe wird pausiert und ein aktiver Timer ausgeschaltet.") },
+        AlertDialog(onDismissRequest = { preview = null }, title = { Text(translated("Backup wiederherstellen?")) },
+            text = { Text(localized("${backup.books.size} Hörbücher und ${backup.bookmarks.size} Lesezeichen.\n\nBei enthaltenen Büchern ersetzt die Sicherung die Hörstände – auch durch ältere Stände. Andere Bücher und zusätzliche Lesezeichen bleiben erhalten. Die Wiedergabe wird pausiert und ein aktiver Timer ausgeschaltet.", "${backup.books.size} audiobooks and ${backup.bookmarks.size} bookmarks.\n\nFor books included in the backup, saved positions will be replaced, even by older positions. Other books and additional bookmarks will be kept. Playback will be paused and any active timer turned off.")) },
             confirmButton = { TextButton(enabled = !s.busy, onClick = {
                 preview = null; playback.restoreBackup(backup)
-            }) { Text("Wiederherstellen") } },
-            dismissButton = { TextButton(onClick = { preview = null }) { Text("Abbrechen") } })
+            }) { Text(translated("Wiederherstellen")) } },
+            dismissButton = { TextButton(onClick = { preview = null }) { Text(translated("Abbrechen")) } })
     }
 }

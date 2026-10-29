@@ -34,7 +34,7 @@ fun BookArtwork(url: String?, modifier: Modifier = Modifier, large: Boolean = fa
         val bitmap by produceState<Bitmap?>(url?.let(store::peek), url) {
             value = url?.let { store.load(it) }
         }
-        Box(modifier.clip(RoundedCornerShape(if (large) 28.dp else 16.dp)).background(Brush.linearGradient(listOf(
+        Box(modifier.clip(RoundedCornerShape(if (LocalTidalDesign.current) 3.dp else if (large) 28.dp else 16.dp)).background(Brush.linearGradient(listOf(
             MaterialTheme.colorScheme.secondaryContainer,MaterialTheme.colorScheme.tertiaryContainer))),contentAlignment = Alignment.Center) {
             Crossfade(targetState = bitmap,animationSpec = tween(220),label = "Buchcover") { artwork ->
                 // Filtered low-resolution artwork stays soft on older Android versions too.

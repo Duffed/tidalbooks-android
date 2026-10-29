@@ -3,14 +3,15 @@ package de.tidalbooks.prototype
 import java.text.Collator
 import java.util.Locale
 
-enum class BookSort(val label: String) {
-    LAST_PLAYED("Zuletzt gehört"), ADDED("Zuletzt hinzugefügt"), TITLE("Titel A–Z"), AUTHOR("Autor A–Z"), REMAINING("Kürzeste Restzeit")
+enum class BookSort(private val germanLabel: String) {
+    LAST_PLAYED("Zuletzt gehört"), ADDED("Zuletzt hinzugefügt"), TITLE("Titel A–Z"), AUTHOR("Autor A–Z"), REMAINING("Kürzeste Restzeit");
+    val label get() = translated(germanLabel)
 }
 internal fun filterBooks(books: List<LibraryBook>, query: String, status: String, sort: BookSort): List<LibraryBook> {
     val terms = query.trim().split(Regex("\\s+")).filter(String::isNotBlank)
     val filtered = books.filter { b -> (status == "Alle" || b.status == status) &&
         terms.all { b.title.contains(it, true) || b.author.contains(it, true) } }
-    val collator = Collator.getInstance(Locale.GERMAN).apply { strength = Collator.PRIMARY }
+    val collator = Collator.getInstance(AppLanguage.locale).apply { strength = Collator.PRIMARY }
     val alphabetical = Comparator<LibraryBook> { a, b -> collator.compare(a.title, b.title) }.thenBy { it.id }
     return when (sort) {
         BookSort.LAST_PLAYED -> filtered.sortedWith(compareByDescending<LibraryBook> { it.lastPlayedAt }.thenByDescending { it.addedAt }.then(alphabetical))
@@ -27,12 +28,12 @@ internal fun resumeOffsetMs(seconds: Int, pausedElapsed: Long, pausedBoot: Int, 
 class CatalogFailure(val status: Int) : Exception()
 internal fun friendlyFailure(error: Exception): String = when (error) {
     is CatalogFailure -> when (error.status) {
-        401 -> "Deine TIDAL-Anmeldung ist abgelaufen. Bitte unter Einstellungen erneut verbinden."
-        403 -> "TIDAL erlaubt den Zugriff auf dieses Hörbuch für dein Konto derzeit nicht."
-        404 -> "Dieses Hörbuch ist bei TIDAL derzeit nicht verfügbar. Deine gespeicherten Stellen bleiben erhalten."
-        429 -> "TIDAL erhält gerade zu viele Anfragen. Bitte warte kurz und versuche es erneut."
-        else -> "TIDAL ist gerade nicht erreichbar. Bitte später erneut versuchen."
+        401 -> translated("Deine TIDAL-Anmeldung ist abgelaufen. Bitte unter Einstellungen erneut verbinden.")
+        403 -> translated("TIDAL erlaubt den Zugriff auf dieses Hörbuch für dein Konto derzeit nicht.")
+        404 -> translated("Dieses Hörbuch ist bei TIDAL derzeit nicht verfügbar. Deine Lesezeichen bleiben erhalten.")
+        429 -> translated("TIDAL erhält gerade zu viele Anfragen. Bitte warte kurz und versuche es erneut.")
+        else -> translated("TIDAL ist gerade nicht erreichbar. Bitte später erneut versuchen.")
     }
-    is java.io.IOException -> "Die Verbindung zu TIDAL wurde unterbrochen. Prüfe WLAN oder mobile Daten und versuche es erneut."
-    else -> "Das hat nicht geklappt. Bitte erneut versuchen. Deine gespeicherten Hörstände bleiben erhalten."
+    is java.io.IOException -> translated("Die Verbindung zu TIDAL wurde unterbrochen. Prüfe WLAN oder mobile Daten und versuche es erneut.")
+    else -> translated("Das hat nicht geklappt. Bitte erneut versuchen. Deine gespeicherten Hörstände bleiben erhalten.")
 }

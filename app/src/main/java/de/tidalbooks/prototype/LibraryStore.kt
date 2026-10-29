@@ -123,14 +123,14 @@ class LibraryStore(context: Context, scope: CoroutineScope, name: String = "audi
                 catch (e: CancellationException) { write.done.cancel(e); throw e }
                 catch (e: Exception) {
                     write.done.completeExceptionally(e)
-                    withContext(Dispatchers.Main) { onError("Änderung konnte nicht gespeichert werden. Bitte Speicherplatz prüfen.") }
+                    withContext(Dispatchers.Main) { onError(translated("Änderung konnte nicht gespeichert werden. Bitte Speicherplatz prüfen.")) }
                 }
             }
         }
     }
     fun write(action: suspend () -> Unit): Deferred<Unit> {
         val done = CompletableDeferred<Unit>()
-        if (writes.trySend(Write(action,done)).isFailure) done.completeExceptionally(IllegalStateException("Speicher nicht verfügbar."))
+        if (writes.trySend(Write(action,done)).isFailure) done.completeExceptionally(IllegalStateException(translated("Speicher nicht verfügbar.")))
         return done
     }
     suspend fun flush() { write {}.await() }
@@ -151,7 +151,7 @@ class LibraryStore(context: Context, scope: CoroutineScope, name: String = "audi
             val existingMarks = dao.allBookmarks()
             val importedMarks = frozen.bookmarks.associateBy { it.id }
             require(existingMarks.none { old -> importedMarks[old.id]?.let { it.bookId != old.bookId } == true }) {
-                "Die Sicherung enthält widersprüchliche Lesezeichen. Es wurde nichts wiederhergestellt."
+                translated("Die Sicherung enthält widersprüchliche Lesezeichen. Es wurde nichts wiederhergestellt.")
             }
             // Retained bookmarks must remain usable with the restored track metadata.
             val restoredTracks = frozen.books.associate { it.id to it.album().tracks.associate { t -> t.id to t.durationMs } }
@@ -159,7 +159,7 @@ class LibraryStore(context: Context, scope: CoroutineScope, name: String = "audi
                 mark.bookId in importedIds && restoredTracks.getValue(mark.bookId)[mark.trackId]
                     ?.let { mark.positionMs in 0..it } != true
             }) {
-                "Die Abschnittsliste passt nicht zu vorhandenen Lesezeichen. Es wurde nichts wiederhergestellt."
+                translated("Die Kapitelliste passt nicht zu vorhandenen Lesezeichen. Es wurde nichts wiederhergestellt.")
             }
             dao.restoreBooks(frozen.books)
             // Old history may refer to a changed track list; restored books get their backed-up history.

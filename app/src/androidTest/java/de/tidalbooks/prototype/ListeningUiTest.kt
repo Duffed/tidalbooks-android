@@ -14,12 +14,24 @@ import org.junit.Test
 
 class ListeningUiTest {
     @get:Rule val compose = createComposeRule()
+    @Test fun continueCardOnlyAppearsWhenItDiffersFromTheMiniPlayer() {
+        val book = LibraryBook("1", "Berg", "Anna", null, 60000, 10000, false, 1)
+        val active = mutableStateOf<Album?>(Album("1", "Berg", listOf(Track("a", "Kapitel", 60000, 1, 1))))
+        compose.setContent { MaterialTheme {
+            LibraryScreen(ProbeState(books = listOf(book), album = active.value, libraryReady = true), Modifier, { _, _ -> }, {}, {}, {})
+        } }
+        compose.onNodeWithText("Weiterhören").assertDoesNotExist()
+        compose.runOnIdle { active.value = Album("2", "Meer", emptyList()) }
+        compose.onNodeWithText("Weiterhören").assertExists()
+        compose.runOnIdle { active.value = null }
+        compose.onNodeWithText("Weiterhören").assertExists()
+    }
     @Test fun searchFiltersByAuthorAndCanBeCleared() {
         val books = listOf(LibraryBook("1", "Berg", "Anna", null, 60000, 0, false, 1),
             LibraryBook("2", "Meer", "Berta", null, 60000, 0, false, 2))
         compose.setContent { MaterialTheme { LibraryScreen(ProbeState(books = books, libraryReady = true), Modifier, { _, _ -> }, {}, {}, {}) } }
         compose.onNodeWithText("Titel oder Autor suchen").assertDoesNotExist()
-        compose.onNodeWithContentDescription("Bibliothek durchsuchen").performScrollTo().performClick()
+        compose.onNodeWithContentDescription("Bibliothek durchsuchen").performClick()
         compose.onNodeWithText("Titel oder Autor suchen").performTextInput("Berta")
         compose.onNodeWithText("Meer", useUnmergedTree = true).assertExists()
         compose.onNodeWithText("Berg", useUnmergedTree = true).assertDoesNotExist()
@@ -44,8 +56,8 @@ class ListeningUiTest {
                     {}, {}, {}, { requested = it }, {}, {}, {}, {}, {}, {}, {}, {}, {}, remember { SnackbarHostState() }) }
             }
         }
-        compose.onNodeWithText("Abschnitt", useUnmergedTree = true).performScrollTo().performClick()
-        compose.onNodeWithContentDescription("Position im Abschnitt").performScrollTo()
+        compose.onNode(hasText("Kapitel") and isSelectable()).performScrollTo().performClick()
+        compose.onNodeWithContentDescription("Position im Kapitel").performScrollTo()
             .performSemanticsAction(SemanticsActions.SetProgress) { it(.5f) }
         assertEquals(120_000L, requested)
         compose.onNodeWithContentDescription("Abspielen").performScrollTo().assertIsDisplayed()

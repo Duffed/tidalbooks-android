@@ -1,26 +1,32 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@android:id/background" android:layout_width="match_parent" android:layout_height="match_parent"
-    android:background="@drawable/widget_background" android:padding="12dp" android:orientation="vertical">
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@android:id/background" android:layout_width="match_parent" android:layout_height="match_parent">
+    <ImageView android:id="@+id/widget_background_image" android:layout_width="match_parent" android:layout_height="match_parent" android:src="@drawable/widget_background" android:scaleType="fitXY" android:importantForAccessibility="no" />
+<LinearLayout
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:paddingHorizontal="16dp" android:paddingVertical="14dp" android:orientation="vertical">
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical">
         <LinearLayout android:id="@+id/widget_header" android:layout_width="0dp" android:layout_weight="1"
             android:layout_height="wrap_content" android:gravity="center_vertical" android:clickable="true" android:focusable="true">
-            <ImageView android:id="@+id/widget_cover" android:layout_width="48dp" android:layout_height="48dp"
-                android:src="@drawable/ic_widget_headphones" android:scaleType="fitCenter" android:importantForAccessibility="no" />
+            <ImageView android:id="@+id/widget_cover" android:layout_width="64dp" android:layout_height="64dp"
+                android:background="@drawable/widget_cover_background" android:clipToOutline="true"
+                android:src="@drawable/ic_widget_headphones" android:scaleType="centerCrop" android:importantForAccessibility="no" />
             <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
-                android:orientation="vertical" android:layout_marginStart="10dp">
+                android:orientation="vertical" android:layout_marginStart="16dp" android:paddingTop="8dp" android:paddingBottom="6dp">
                 <TextView android:id="@+id/widget_title" android:layout_width="match_parent" android:layout_height="wrap_content"
                     android:text="@string/widget_title" android:textSize="14sp" android:textStyle="bold"
-                    android:textColor="@color/widget_text" android:maxLines="2" android:ellipsize="end" />
+                    android:textColor="@color/widget_text" android:maxLines="1" android:ellipsize="end" />
                 <TextView android:id="@+id/widget_subtitle" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp" android:alpha="0.75"
                     android:text="@string/widget_subtitle" android:textSize="11sp" android:textColor="@color/widget_text"
                     android:maxLines="1" android:ellipsize="end" />
+                <ProgressBar android:id="@+id/widget_progress" style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent" android:layout_height="3dp"
+                    android:layout_marginTop="8dp" android:layout_marginEnd="12dp" android:layout_marginBottom="4dp"
+                    android:progressDrawable="@drawable/widget_progress" android:progressBackgroundTint="#40808080"
+                    android:progressTint="@color/widget_accent" android:max="1000" android:importantForAccessibility="no" />
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
-    <ProgressBar android:id="@+id/widget_progress" style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent" android:layout_height="3dp" android:layout_marginTop="8dp" android:layout_marginBottom="8dp"
-        android:progressTint="@color/widget_accent" android:max="1000" android:importantForAccessibility="no" />
-    <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:gravity="center_vertical">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginTop="8dp" android:gravity="center_vertical">
         <LinearLayout android:id="@+id/widget_back" android:layout_width="0dp" android:layout_weight="1"
             android:layout_height="48dp" android:orientation="vertical" android:gravity="center"
             android:clickable="true" android:focusable="true" android:contentDescription="@string/widget_rewind">
@@ -36,7 +42,7 @@
             android:layout_height="48dp" android:orientation="vertical" android:gravity="center"
             android:clickable="true" android:focusable="true" android:contentDescription="@string/widget_bookmark">
             <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_widget_mark" android:importantForAccessibility="no" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/widget_mark" android:textSize="11sp" android:textColor="@color/widget_text" />
+            <TextView android:id="@+id/widget_mark_label" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/widget_mark" android:textSize="11sp" android:textColor="@color/widget_text" />
         </LinearLayout>
         <LinearLayout android:id="@+id/widget_timer" android:layout_width="0dp" android:layout_weight="1"
             android:layout_height="48dp" android:orientation="vertical" android:gravity="center" android:clickable="true" android:focusable="true">
@@ -47,3 +53,5 @@
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>
+
+</FrameLayout>

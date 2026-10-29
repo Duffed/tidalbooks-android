@@ -13,7 +13,7 @@ data class ProbeState(
     val playing: Boolean = false,
     val requestedPlay: Boolean = false,
     val loading: Boolean = false,
-    val presentation: String = "Noch nicht geprüft",
+    val presentation: String = translated("Noch nicht geprüft"),
     val fullObserved: Boolean = false,
     val continuousPlayedMs: Long = 0,
     val transitions: Int = 0,
@@ -45,10 +45,10 @@ fun albumId(input: String): String {
     if (value.matches(Regex("[0-9]+"))) return value
     val uri = runCatching { URI(value) }.getOrNull()
     require(uri != null && uri.scheme == "https" && uri.host in setOf("tidal.com", "www.tidal.com", "listen.tidal.com")) {
-        "Bitte einen TIDAL-Albumlink oder eine numerische Album-ID eingeben."
+        translated("Bitte einen TIDAL-Albumlink oder eine numerische Album-ID eingeben.")
     }
     return Regex("/(?:browse/)?album/([0-9]+)(?:/|$)").find(uri.path)?.groupValues?.get(1)
-        ?: throw IllegalArgumentException("Der Link muss auf ein Album zeigen.")
+        ?: throw IllegalArgumentException(translated("Der Link muss auf ein Album zeigen."))
 }
 
 /** All deadlines use elapsedRealtime, never the adjustable wall clock. */

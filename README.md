@@ -1,15 +1,15 @@
 # TIDAL Hörbuch für Android
 
-Private Androidapp mit lokaler Hörbibliothek, gespeichertem Hörfortschritt pro Buch, Lesezeichen, Einschlaftimer und Material-You-Oberfläche. Version **0.4.7-private**, Android 8 oder neuer. Die alternative TIDAL-Anmeldung und vollständige Wiedergabe wurden auf dem angeschlossenen Pixel 9 Pro nachgewiesen. Es gibt keinen eigenen Server oder zusätzlichen App-Account.
+Private Androidapp mit lokaler Hörbibliothek, gespeichertem Hörfortschritt pro Buch, Lesezeichen, Einschlaftimer und Material-You-Oberfläche. Version **0.5.0-beta4**, Android 8 oder neuer. Die alternative TIDAL-Anmeldung und vollständige Wiedergabe wurden auf dem angeschlossenen Pixel 9 Pro nachgewiesen. Es gibt keinen eigenen Server oder zusätzlichen App-Account.
 
 ## Verwendung
 
 1. APK installieren oder bestehende Installation aktualisieren. Die Anmeldung und die neue Bibliothek bleiben bei Updates erhalten.
 2. Unter **Einstellungen → Mit TIDAL verbinden** den Gerätecode auf der TIDAL-Seite bestätigen. Danach per Zurück-Geste zur App zurückkehren. Die Geräteanmeldung hat keinen automatischen Browser-Rücksprung.
-3. In der Bibliothek **Hinzufügen** wählen und einen Albumlink einfügen. Alternativ das Album direkt aus TIDAL an „Hörbuch“ teilen. Ein bereits vorhandenes Album wird geöffnet und sein Fortschritt erhalten.
+3. In der Bibliothek **Hinzufügen** wählen und einen Albumlink einfügen. Alternativ das Album direkt aus TIDAL an „Hörbuch“ teilen. Ist bereits ein Buch geöffnet, bleibt es beim Hinzufügen ausgewählt und spielt weiter. Ein bereits importiertes Album wird nicht doppelt angelegt. Ohne ausgewähltes Buch wird das hinzugefügte Buch pausiert geöffnet.
 4. Buch öffnen und auf Abspielen tippen. Beim erneuten App-Start wird das zuletzt geöffnete Buch pausiert an seiner gespeicherten Stelle angezeigt.
    Der Mini-Player lässt sich antippen oder langsam nach oben ziehen. Zum Minimieren im großen Player über Cover oder Inhalt herunterziehen oder den Pfeil nach unten verwenden. Bei gescrolltem Inhalt geht es zunächst zum Anfang zurück; anschließend folgt der Player derselben Ziehgeste. Die Bibliothek bleibt dahinter stehen.
-5. Im Player setzt **Merken** sofort ein Lesezeichen. Unter **Stellen** oder im Bibliothek-Tab **Lesezeichen** lassen sich Stellen anspringen, über das Menü benennen und löschen. Ein Sprung erhält den Play-/Pausezustand.
+5. Im Player setzt **Merken** sofort ein Lesezeichen. Unter **Lesezeichen** oder im Bibliothek-Tab **Lesezeichen** lassen sich Stellen anspringen, über das Menü benennen und löschen. Ein Sprung erhält den Play-/Pausezustand.
 6. **Timer** bietet 15/30/45/60 Minuten, eine eigene Dauer von 1–180 Minuten und Trackende. Ein aktiver Minutentimer lässt sich um zehn Minuten verlängern oder abschalten. „Zur Stelle vor dem Einschlafen“ stellt den separat gespeicherten Beginn der letzten Einschlafsitzung wieder her.
 
 ## Verhalten und Speicherung
@@ -63,7 +63,7 @@ Die Fortschrittsanzeigen verwenden die offizielle wellenförmige Expressive-Anze
 ## Weiterhören und Bibliothek (28.10.2026)
 - Dezente Such- und Sortiersymbole unter den Statusfiltern; das Suchfeld öffnet sich erst beim Antippen. Suche nach Titel/Autor kombiniert mit Statusfiltern. Sortierung: zuletzt gehört,
   zuletzt hinzugefügt, Titel, Autor oder kürzeste Restzeit; Sortierwahl bleibt gespeichert.
-- Der Player bietet „Ganzes Buch“ und „Abschnitt“ für Zeitangaben und präzises Spulen.
+- Der Player bietet „Ganzes Buch“ und „Kapitel“ für Zeitangaben und präzises Spulen.
   Bei Abschnittsspulen bleibt ein Sprung am rechten Rand innerhalb des Abschnitts.
 - Vor manuellen Sprüngen werden bis zu zehn vorherige Positionen pro Buch gespeichert.
   „Letzten Sprung rückgängig“ oder das Menü „Positionsverlauf“ stellt eine Stelle unter
@@ -167,3 +167,44 @@ ausschließlich in Listenzeilen. Autorensuche bleibt verfügbar.
 Bibliothekskopf ohne Collapse-/Nested-Scroll-Verbindung. Grid/Liste nimmt
 Scrollgesten nur an, wenn vorwärts oder rückwärts Inhalt außerhalb des
 sichtbaren Bereichs liegt. Lange Bibliotheken und Suche bleiben scrollbar.
+
+29.10.2026 – Zweites Design „TIDAL“:
+Unter Einstellungen → Farben & Darstellung → Design zwischen Material Expressive
+und TIDAL wechseln. Auswahl separat in appearance/design gespeichert; bisherige
+Palette und Helligkeit bleiben erhalten. TIDAL verwendet feste schwarze/graue
+Flächen, weiße Steuerelemente, kompakte Cover/Listenzeilen, schlichte Navigation,
+gerade Fortschrittsanzeigen und einen runden Play-Knopf. Keine Datenmigration.
+Vorlage: offizielle Android-Screenshots auf
+https://play.google.com/store/apps/details?id=com.aspiro.tidal
+assembleDebug mit JDK 17 erfolgreich. Auf Pixel mit vorhandenem Schlüssel per
+install -r aktualisiert. Player/Lesezeichen visuell geprüft. Keine zusätzlichen
+Testläufe gemäß Nutzerwunsch. Wiedergabe- und Speicherlogik unverändert.
+
+Testpaket 0.5.0-beta1: distribution/0.5.0-beta1/ (APK und LIES-MICH.txt).
+Erststart-Prüfbuild: -PfreshInstallCheck=true verwendet eine eigene App-ID.
+Weiterhören wird bei Übereinstimmung mit dem Mini-Player ausgeblendet.
+
+## Sprachen (0.5.0-beta2)
+
+Die gesamte App ist auf Deutsch und Englisch verfügbar. Unter Einstellungen →
+Darstellung → Sprache stehen System, Deutsch und English zur Wahl. Ab Android 13 wird die
+Android-App-Sprache verwendet; auf älteren Geräten wird die Auswahl lokal gespeichert.
+Widgets und Mediensteuerung übernehmen die Sprache ebenfalls. Buchtitel, Autoren
+und eigene Lesezeichennamen bleiben unverändert. Interne Filterwerte und gespeicherte
+Hörstände werden nicht übersetzt oder migriert.
+
+Statische App-Texte stehen in `Translations.kt`; formatierte Texte verwenden
+`localized(deutsch, englisch)`. Native Android-Beschriftungen liegen zusätzlich in
+`values/strings.xml` und `values-en/strings.xml`. Bei neuen Texten beide Sprachen
+ergänzen. Enum-Beschriftungen werden beim Anzeigen aufgelöst, nicht einmalig gespeichert.
+
+Aktuelles Testpaket: `distribution/TIDAL-Books-0.5.0-beta4.zip`, mit APK,
+deutscher und englischer Anleitung sowie SHA-256-Prüfsumme.
+
+## Kompakte Einstellungen (0.5.0-beta3)
+
+Die sechs Bereiche Konto, Wiedergabe, Darstellung, Widget, Backup und Über die App
+lassen sich direkt in der Übersicht aufklappen. Ein erneuter Tipp schließt den Bereich;
+beim Öffnen eines anderen klappt der bisherige zu. Die Kopfzeilen zeigen aktuelle Werte.
+Die Sprache liegt unter Darstellung, die Medienbenachrichtigung unter Wiedergabe.
+Widget-Vorschau und ausführliche Erklärungen erscheinen nur im geöffneten Bereich.

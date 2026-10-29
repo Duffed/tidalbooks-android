@@ -20,19 +20,22 @@ import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.core.content.edit
 
-enum class ThemeMode(val label: String) { SYSTEM("System"), LIGHT("Hell"), DARK("Dunkel") }
-enum class AppPalette(val label: String, val light: Long, val dark: Long) {
+enum class ThemeMode(private val germanLabel: String) { SYSTEM("System"), LIGHT("Hell"), DARK("Dunkel"); val label get() = translated(germanLabel) }
+enum class AppDesign(private val germanLabel: String) { EXPRESSIVE("Material Expressive"), TIDAL("TIDAL"); val label get() = translated(germanLabel) }
+enum class AppPalette(private val germanLabel: String, val light: Long, val dark: Long) {
     SYSTEM("Material You", 0xFF28665C, 0xFFA1D1C7),
     OCEAN("Ozean", 0xFF285EA8, 0xFFA9C7FF),
     FOREST("Wald", 0xFF28665C, 0xFFA1D1C7),
     PLUM("Pflaume", 0xFF74529A, 0xFFD6BAFF),
     CLAY("Terrakotta", 0xFF934B35, 0xFFFFB59C),
-    GRAPHITE("Graphit", 0xFF515B66, 0xFFC0CAD7),
+    GRAPHITE("Graphit", 0xFF515B66, 0xFFC0CAD7);
+    val label get() = translated(germanLabel)
 }
 
 data class ThemeSettings(
     val palette: AppPalette = AppPalette.SYSTEM,
     val mode: ThemeMode = ThemeMode.SYSTEM,
+    val design: AppDesign = AppDesign.EXPRESSIVE,
 ) {
     fun isDark(systemDark: Boolean): Boolean = when (mode) {
         ThemeMode.SYSTEM -> systemDark
@@ -41,9 +44,10 @@ data class ThemeSettings(
     }
 
     companion object {
-        fun decode(palette: String?, mode: String?) = ThemeSettings(
+        fun decode(palette: String?, mode: String?, design: String? = null) = ThemeSettings(
             AppPalette.entries.firstOrNull { it.name == palette } ?: AppPalette.SYSTEM,
             ThemeMode.entries.firstOrNull { it.name == mode } ?: ThemeMode.SYSTEM,
+            AppDesign.entries.firstOrNull { it.name == design } ?: AppDesign.EXPRESSIVE,
         )
     }
 }
@@ -52,7 +56,7 @@ data class ThemeSettings(
 @Stable
 class ThemeStore(private val preferences: SharedPreferences) {
     var settings by mutableStateOf(ThemeSettings.decode(
-        preferences.getString("palette", null), preferences.getString("mode", null)))
+        preferences.getString("palette", null), preferences.getString("mode", null), preferences.getString("design", null)))
         private set
 
     fun update(value: ThemeSettings) {
@@ -61,11 +65,16 @@ class ThemeStore(private val preferences: SharedPreferences) {
             remove("style")
             putString("palette", value.palette.name)
             putString("mode", value.mode.name)
+            putString("design", value.design.name)
         }
     }
 }
 
 internal val LocalThemeStore = staticCompositionLocalOf<ThemeStore> { error("AudiobookTheme fehlt") }
+internal val LocalTidalDesign = staticCompositionLocalOf { false }
+
+@Composable
+internal fun appCorner(radius: Dp) = RoundedCornerShape(if (LocalTidalDesign.current) 6.dp else radius)
 
 /** Vollständige Farbrollen für jede Palette. */
 internal fun curatedColorScheme(palette: AppPalette, dark: Boolean): ColorScheme {
@@ -105,8 +114,9 @@ fun AudiobookTheme(store: ThemeStore? = null, content: @Composable () -> Unit) {
         ThemeStore(context.applicationContext.getSharedPreferences("appearance", Context.MODE_PRIVATE))
     }
     val settings = themeStore.settings
-    val dark = settings.isDark(isSystemInDarkTheme())
-    val colors = if (settings.palette == AppPalette.SYSTEM && Build.VERSION.SDK_INT >= 31) {
+    val tidal = settings.design == AppDesign.TIDAL
+    val dark = tidal || settings.isDark(isSystemInDarkTheme())
+    val colors = if (tidal) tidalColorScheme() else if (settings.palette == AppPalette.SYSTEM && Build.VERSION.SDK_INT >= 31) {
         if (dark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
     } else curatedColorScheme(settings.palette, dark)
     val typography = Typography().let { type ->
@@ -125,10 +135,10 @@ fun AudiobookTheme(store: ThemeStore? = null, content: @Composable () -> Unit) {
             }
         }
     }
-    CompositionLocalProvider(LocalThemeStore provides themeStore) {
-        MaterialExpressiveTheme(colorScheme = colors, typography = typography, motionScheme = MotionScheme.expressive(), shapes = Shapes(
-            small = RoundedCornerShape(12.dp), medium = RoundedCornerShape(20.dp),
-            large = RoundedCornerShape(28.dp), extraLarge = RoundedCornerShape(32.dp)),
+    CompositionLocalProvider(LocalThemeStore provides themeStore, LocalTidalDesign provides tidal) {
+        MaterialExpressiveTheme(colorScheme = colors, typography = typography, motionScheme = if (tidal) MotionScheme.standard() else MotionScheme.expressive(), shapes = Shapes(
+            small = appCorner(12.dp), medium = appCorner(20.dp),
+            large = appCorner(28.dp), extraLarge = appCorner(32.dp)),
         ) {
             CompositionLocalProvider(LocalContentColor provides colors.onSurface, content = content)
         }

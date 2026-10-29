@@ -12,6 +12,18 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class WidgetViewsTest {
+    @Test fun bothDesignsApplyBackgroundOpacityWithoutFadingControls() {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            for (tidal in listOf(false, true)) for (opacity in listOf(0, 40, 100)) {
+                val view = AudiobookWidget.views(context, WidgetSnapshot.from(ProbeState(album = album)), tidal, opacity)
+                    .apply(context, FrameLayout(context))
+                assertEquals((opacity * 255 + 50) / 100, view.findViewById<ImageView>(R.id.widget_background_image).imageAlpha)
+                assertEquals(1f, view.findViewById<View>(R.id.widget_play).alpha)
+                assertTrue(view.findViewById<View>(R.id.widget_play).isEnabled)
+                assertTrue(view.findViewById<ImageView>(R.id.widget_cover).clipToOutline)
+            }
+        }
+    }
     private val context = ApplicationProvider.getApplicationContext<Context>()
     private val album = Album("b","Ein Hörbuch",listOf(Track("a","Anfang",60_000,1,1)))
 

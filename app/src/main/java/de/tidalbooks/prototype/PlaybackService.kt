@@ -18,6 +18,7 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.collect.ImmutableList
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.combine
 
 @androidx.annotation.OptIn(UnstableApi::class)
 class PlaybackService : MediaSessionService() {
@@ -28,7 +29,7 @@ class PlaybackService : MediaSessionService() {
         super.onCreate()
         playback.serviceStarted()
         getSystemService(NotificationManager::class.java).createNotificationChannel(
-            NotificationChannel("playback",getString(R.string.playback_channel),NotificationManager.IMPORTANCE_LOW))
+            NotificationChannel("playback",localized("Hörbuchwiedergabe", "Audiobook playback"),NotificationManager.IMPORTANCE_LOW))
         setMediaNotificationProvider(object : DefaultMediaNotificationProvider(this,{ 1001 },"playback",R.string.playback_channel) {
             override fun getMediaButtons(session: MediaSession, playerCommands: Player.Commands,
                 mediaButtonPreferences: ImmutableList<CommandButton>, showPauseButton: Boolean): ImmutableList<CommandButton> {
@@ -56,7 +57,7 @@ class PlaybackService : MediaSessionService() {
                 else -> CommandButton.ICON_SKIP_BACK
             }).setSessionCommand(back).setSlots(CommandButton.SLOT_BACK)
                 .setExtras(Bundle().apply { putInt(DefaultMediaNotificationProvider.COMMAND_KEY_COMPACT_VIEW_INDEX,0) })
-                .setDisplayName("$seconds Sekunden zurück").build(),
+                .setDisplayName(localized("$seconds Sekunden zurück", "Back $seconds seconds")).build(),
             CommandButton.Builder(when(seconds) {
                 5 -> CommandButton.ICON_SKIP_FORWARD_5
                 15 -> CommandButton.ICON_SKIP_FORWARD_15
@@ -64,7 +65,7 @@ class PlaybackService : MediaSessionService() {
                 else -> CommandButton.ICON_SKIP_FORWARD
             }).setSessionCommand(forward).setSlots(CommandButton.SLOT_FORWARD)
                 .setExtras(Bundle().apply { putInt(DefaultMediaNotificationProvider.COMMAND_KEY_COMPACT_VIEW_INDEX,2) })
-                .setDisplayName("$seconds Sekunden vor").build(),
+                .setDisplayName(localized("$seconds Sekunden vor", "Forward $seconds seconds")).build(),
         )
         val initialButtons = buttons(playback.state.value.skipSeconds)
         session = MediaSession.Builder(this,adapter).setId("audiobooks").setSessionActivity(intent)
@@ -88,9 +89,13 @@ class PlaybackService : MediaSessionService() {
         addSession(requireNotNull(session))
         scope.launch {
             var currentSeconds = playback.state.value.skipSeconds
-            playback.state.collect { state ->
+            var currentLanguage = AppLanguage.english
+            combine(playback.state, AppLanguage.changes) { state, _ -> state }.collect { state ->
                 adapter.refresh()
-                if (currentSeconds != state.skipSeconds) {
+                if (currentSeconds != state.skipSeconds || currentLanguage != AppLanguage.english) {
+                    currentLanguage = AppLanguage.english
+                    getSystemService(NotificationManager::class.java).createNotificationChannel(
+                        NotificationChannel("playback",localized("Hörbuchwiedergabe", "Audiobook playback"),NotificationManager.IMPORTANCE_LOW))
                     currentSeconds = state.skipSeconds
                     val updated = buttons(currentSeconds)
                     session?.setMediaButtonPreferences(updated)
@@ -120,16 +125,18 @@ class PlaybackService : MediaSessionService() {
 @UnstableApi
 private class BookMediaPlayer(private val playback: PlaybackProbe) : SimpleBasePlayer(Looper.getMainLooper()) {
     private var cachedAlbum: Album? = null
+    private var cachedEnglish: Boolean? = null
     private var playlist: List<MediaItemData> = emptyList()
     fun refresh() = invalidateState()
     override fun getState(): State {
         val s = playback.state.value
         val album = s.album
-        if (cachedAlbum !== album) {
+        if (cachedAlbum !== album || cachedEnglish != AppLanguage.english) {
+            cachedEnglish = AppLanguage.english
             cachedAlbum = album
             playlist = album?.tracks?.mapIndexed { index, track ->
                 val metadata = MediaMetadata.Builder().setTitle(album.title).setAlbumTitle(album.title)
-                    .setArtist("Track ${index+1} von ${album.tracks.size}" + if (album.author.isNotBlank()) " · ${album.author}" else " · TIDAL")
+                    .setArtist(localized("Track ${index+1} von ${album.tracks.size}", "Chapter ${index+1} of ${album.tracks.size}") + if (album.author.isNotBlank()) " · ${album.author}" else " · TIDAL")
                     .setSubtitle(track.title).setIsPlayable(true).setMediaType(MediaMetadata.MEDIA_TYPE_AUDIO_BOOK_CHAPTER)
                     .apply { album.coverUrl?.let { setArtworkUri(Uri.parse(it)) } }.build()
                 MediaItemData.Builder("${album.id}:${track.id}:$index")

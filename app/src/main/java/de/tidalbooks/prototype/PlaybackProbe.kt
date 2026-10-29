@@ -28,7 +28,7 @@ class PlaybackProbe(private val app: ProbeApp, private val gateway: OfficialTida
     private val timer = SleepDeadline()
     private var fadeCheckpoint: ProbeState? = null
     private val sleepVolume by lazy { TidalSleepVolume(engine) {
-        notify("Das sanfte Ausblenden ist nicht verfügbar. Der Timer pausiert trotzdem und springt zurück.")
+        notify(translated("Das sanfte Ausblenden ist nicht verfügbar. Der Timer pausiert trotzdem und springt zurück."))
     } }
     private val bootCount get() = runCatching { Settings.Global.getInt(app.contentResolver, Settings.Global.BOOT_COUNT, -1) }.getOrDefault(-1)
     private var restoringBackup = false
@@ -51,11 +51,11 @@ class PlaybackProbe(private val app: ProbeApp, private val gateway: OfficialTida
         mutable.update { it.copy(resumeRewindSeconds = preferences.getInt("resumeSeconds", 0).takeIf { v -> v in listOf(0, 5, 10, 15, 30) } ?: 0,
             skipSeconds = preferences.getInt("skipSeconds", 30).takeIf { it in listOf(5, 15, 30, 60) } ?: 30,
             lastTimerMinutes = preferences.getInt("lastTimerMinutes", 30).coerceIn(1, 180)) }
-        scope.launch { library.dao.observeHistory().catch { notify("Positionsverlauf konnte nicht geladen werden.") }
+        scope.launch { library.dao.observeHistory().catch { notify(translated("Positionsverlauf konnte nicht geladen werden.")) }
             .collect { history -> mutable.update { it.copy(history = history) } } }
-        scope.launch { library.dao.observeBooks().catch { notify("Bibliothek konnte nicht geöffnet werden.") }
+        scope.launch { library.dao.observeBooks().catch { notify(translated("Bibliothek konnte nicht geöffnet werden.")) }
             .collect { books -> mutable.update { it.copy(books = books) } } }
-        scope.launch { library.dao.observeBookmarks().catch { notify("Lesezeichen konnten nicht geladen werden.") }
+        scope.launch { library.dao.observeBookmarks().catch { notify(translated("Lesezeichen konnten nicht geladen werden.")) }
             .collect { marks -> mutable.update { it.copy(bookmarks = marks) } } }
         scope.launch {
             try {
@@ -77,12 +77,12 @@ class PlaybackProbe(private val app: ProbeApp, private val gateway: OfficialTida
                     }
                 }
             } catch (e: CancellationException) { throw e }
-            catch (_: Exception) { notify("Die Bibliothek konnte noch nicht vollständig wiederhergestellt werden.") }
+            catch (_: Exception) { notify(translated("Die Bibliothek konnte noch nicht vollständig wiederhergestellt werden.")) }
             finally { mutable.update { it.copy(libraryReady = true) } }
         }
         scope.launch { while (isActive) { tick(); delay(if (state.value.requestedPlay || state.value.playing || timer.deadlineMs != null || pendingSeek != null) 100L else 1_000L) } }
         scope.launch {
-            state.map(WidgetSnapshot::from).distinctUntilChanged().collect { snapshot ->
+            combine(state, AppLanguage.changes) { s, language -> WidgetSnapshot.from(s) to language }.distinctUntilChanged().map { it.first }.collect { snapshot ->
                 if (AudiobookWidget.hasInstances(app)) runCatching { AudiobookWidget.update(app,snapshot) }
             }
         }
@@ -101,22 +101,22 @@ class PlaybackProbe(private val app: ProbeApp, private val gateway: OfficialTida
                 if (!gateway.resumeAlternativeLogin()) {
                     val login = gateway.beginAlternativeLogin()
                     mutable.update { it.copy(alternativeCode = login.userCode, alternativeUrl = login.verificationUrl,
-                        message = "Auf der TIDAL-Seite bestätigen und anschließend zur App zurückkehren.") }
+                        message = translated("Auf der TIDAL-Seite bestätigen und anschließend zur App zurückkehren.")) }
                     gateway.completeAlternativeLogin(login)
                 }
                 if (initialized) { engine.reset(); pendingSeek = null }
-                mutable.update { it.copy(loggedIn = true, alternativeActive = true, message = "Mit TIDAL verbunden.") }
+                mutable.update { it.copy(loggedIn = true, alternativeActive = true, message = translated("Mit TIDAL verbunden.")) }
             }
             mutable.update { it.copy(alternativeCode = null, alternativeUrl = null) }
         }
     }
     fun cancelAlternativeLogin() {
         alternativeLogin?.cancel()
-        mutable.update { it.copy(alternativeCode = null, alternativeUrl = null, message = "Anmeldung abgebrochen.") }
+        mutable.update { it.copy(alternativeCode = null, alternativeUrl = null, message = translated("Anmeldung abgebrochen.")) }
     }
     fun finishLogin(redirectUri: String) = scope.launch { operation {
         val ok = gateway.finishLogin(redirectUri)
-        mutable.update { it.copy(loggedIn = ok, alternativeActive = false, message = if(ok) "Mit TIDAL verbunden." else "Die Anmeldung wurde nicht abgeschlossen.") }
+        mutable.update { it.copy(loggedIn = ok, alternativeActive = false, message = if(ok) translated("Mit TIDAL verbunden.") else translated("Die Anmeldung wurde nicht abgeschlossen.")) }
     } }
     fun checkLegacyPlayback() = scope.launch { operation {
         val id = state.value.album?.tracks?.firstOrNull()?.id ?: return@operation
@@ -132,12 +132,14 @@ class PlaybackProbe(private val app: ProbeApp, private val gateway: OfficialTida
             var stored = library.dao.book(id)
             if (stored == null) {
                 val album = gateway.album(id, country.trim().uppercase())
-                check(album.tracks.isNotEmpty() && album.tracks.all { it.durationMs > 0 }) { "Das Album enthält nicht abspielbare Tracks." }
+                check(album.tracks.isNotEmpty() && album.tracks.all { it.durationMs > 0 }) { translated("Das Album enthält nicht abspielbare Tracks.") }
                 library.add(album)
                 stored = library.dao.book(id)
             }
-            selectBook(requireNotNull(stored), play = false)
-            notify("Hörbuch in deiner Bibliothek.")
+            // Import only changes the library when a book is already selected. This
+            // also preserves pause/timer changes that happen while the request runs.
+            if (state.value.album == null) selectBook(requireNotNull(stored), play = false)
+            notify(translated("Hörbuch in deiner Bibliothek."))
         }
     }
     fun openBook(id: String, autoPlay: Boolean = false) = scope.launch {
@@ -145,7 +147,7 @@ class PlaybackProbe(private val app: ProbeApp, private val gateway: OfficialTida
         if (state.value.album?.id == id) { if (autoPlay) play(); return@launch }
         operation {
             saveCurrentPosition(); library.flush()
-            selectBook(library.dao.book(id) ?: error("Dieses Hörbuch ist nicht mehr in der Bibliothek."), play = autoPlay)
+            selectBook(library.dao.book(id) ?: error(translated("Dieses Hörbuch ist nicht mehr in der Bibliothek.")), play = autoPlay)
         }
     }
     private fun restoreState(book: StoredBook, override: BookPosition? = null) {
@@ -153,7 +155,7 @@ class PlaybackProbe(private val app: ProbeApp, private val gateway: OfficialTida
         val position = override ?: restoreBookPosition(album.tracks, book.progressTrackId, book.progressMs)
         mutable.update { it.copy(album = album, index = position.index, positionMs = position.positionMs,
             completed = book.completed && override == null, playing = false, requestedPlay = false,
-            presentation = "Noch nicht geprüft", continuousPlayedMs = 0, fullObserved = false, playbackProblem = null) }
+            presentation = translated("Noch nicht geprüft"), continuousPlayedMs = 0, fullObserved = false, playbackProblem = null) }
         preferences.edit().putString("lastBook", book.id).apply()
     }
     private fun selectBook(book: StoredBook, override: BookPosition? = null, play: Boolean) {
@@ -183,7 +185,7 @@ class PlaybackProbe(private val app: ProbeApp, private val gateway: OfficialTida
         if (state.value.sleepSession?.startBookId == id) {
             timer.cancel(); mutable.update { it.copy(sleepSession = null, timerRemainingMs = null) }
         }
-        notify("Hörbuch aus der Bibliothek entfernt.")
+        notify(translated("Hörbuch aus der Bibliothek entfernt."))
     } }
 
     private suspend fun operation(block: suspend () -> Unit) {
@@ -217,7 +219,7 @@ class PlaybackProbe(private val app: ProbeApp, private val gateway: OfficialTida
                         continuousPlayedMs = 0, presentation = event.playbackContext.assetPresentation.name,
                         fullObserved = it.fullObserved || full) }
                     previousId = event.mediaProduct.productId
-                    if (!full) pause("TIDAL liefert für diesen Zugang nur eine Vorschau.", readEngine = false)
+                    if (!full) pause(translated("TIDAL liefert für diesen Zugang nur eine Vorschau."), readEngine = false)
                     else {
                         if (pending != null) { engine.seek(pending.positionMs.toFloat()); seekTarget = pending.positionMs; pendingSeek = null }
                         if (!state.value.requestedPlay) engine.pause()
@@ -240,7 +242,7 @@ class PlaybackProbe(private val app: ProbeApp, private val gateway: OfficialTida
                             return@collect
                         }
                         mutable.update { it.copy(index = album.tracks.lastIndex, positionMs = album.tracks.last().durationMs, completed = true) }
-                        pause("Hörbuch beendet.", readEngine = false)
+                        pause(translated("Hörbuch beendet."), readEngine = false)
                     }
                 }
                 is Event.Error -> {
@@ -263,13 +265,13 @@ class PlaybackProbe(private val app: ProbeApp, private val gateway: OfficialTida
                     }
                     val code = event.errorCode.take(48).filter { it.isLetterOrDigit() || it in ":_-" }
                     val problem = if (event.errorCode == "-1:3:4006")
-                        "Android konnte die Audiowiedergabe nicht wiederherstellen. Versuche es erneut ($code)."
-                    else "TIDAL konnte den Abschnitt nicht laden ($code). Prüfe deine Verbindung. Falls der Fehler bleibt, verbinde TIDAL in den Einstellungen erneut."
+                        localized("Android konnte die Audiowiedergabe nicht wiederherstellen. Versuche es erneut ($code).", "Android could not restore audio playback. Please try again ($code).")
+                    else localized("TIDAL konnte das Kapitel nicht laden ($code). Prüfe deine Verbindung. Falls der Fehler bleibt, verbinde TIDAL in den Einstellungen erneut.", "TIDAL could not load this chapter ($code). Check your connection. If the problem persists, reconnect to TIDAL in Settings.")
                     pause(problem, readEngine = false)
                     mutable.update { it.copy(playbackProblem = problem) }
                 }
                 is Event.StreamingPrivilegesRevoked -> {
-                    val problem = "TIDAL wird auf einem anderen Gerät wiedergegeben. Beende dort die Wiedergabe, bevor du hier erneut startest."
+                    val problem = translated("TIDAL wird auf einem anderen Gerät wiedergegeben. Beende dort die Wiedergabe, bevor du hier erneut startest.")
                     pause(problem)
                     mutable.update { it.copy(playbackProblem = problem) }
                 }
@@ -305,7 +307,7 @@ class PlaybackProbe(private val app: ProbeApp, private val gateway: OfficialTida
         if (state.value.requestedPlay && state.value.loading) {
             if (stalledSince == null) stalledSince = now
             if (now-requireNotNull(stalledSince) >= 20_000) {
-                val problem = "Der Abschnitt lädt ungewöhnlich lange. Prüfe deine Internetverbindung und versuche es erneut."
+                val problem = translated("Das Kapitel lädt ungewöhnlich lange. Prüfe deine Internetverbindung und versuche es erneut.")
                 pause(problem)
                 mutable.update { it.copy(playbackProblem = problem, loading = false) }
                 stalledSince = null
@@ -328,7 +330,7 @@ class PlaybackProbe(private val app: ProbeApp, private val gateway: OfficialTida
         val track = state.value.album?.tracks?.getOrNull(index) ?: return
         if (!recoveringDecoder) decoderRecovery.newRequest()
         mutable.update { it.copy(index = index, positionMs = positionMs, requestedPlay = play, playing = false,
-            continuousPlayedMs = 0, presentation = "Wird geladen", playbackProblem = null) }
+            continuousPlayedMs = 0, presentation = translated("Wird geladen"), playbackProblem = null) }
         stalledSince = null
         pendingSeek = PendingSeek(track.id,positionMs)
         seekTarget = positionMs
@@ -344,8 +346,8 @@ class PlaybackProbe(private val app: ProbeApp, private val gateway: OfficialTida
         if (state.value.playbackProblem != null) { retryPlayback(); return }
         var s = state.value
         if (s.album == null || !s.libraryReady || s.busy) return
-        if (!s.loggedIn) { notify("Bitte zuerst mit TIDAL verbinden."); return }
-        if (s.completed) { notify("Dieses Hörbuch ist beendet. Wähle „Von vorne hören“, um es erneut zu starten."); return }
+        if (!s.loggedIn) { notify(translated("Bitte zuerst mit TIDAL verbinden.")); return }
+        if (s.completed) { notify(translated("Dieses Hörbuch ist beendet. Wähle „Von vorne hören“, um es erneut zu starten.")); return }
         decoderRecovery.newRequest()
         if (timer.expired(SystemClock.elapsedRealtime())) { expireTimer(); return }
         prepareResume()
@@ -354,7 +356,7 @@ class PlaybackProbe(private val app: ProbeApp, private val gateway: OfficialTida
         if (!initialized || engine.mediaProduct?.productId != album.tracks[s.index].id) {
             ensureInitialized(); loadTrack(s.index,s.positionMs,false)
         }
-        if (state.value.presentation == "PREVIEW") { notify("Dieser TIDAL-Zugang liefert nur Vorschauen."); return }
+        if (state.value.presentation == "PREVIEW") { notify(translated("Dieser TIDAL-Zugang liefert nur Vorschauen.")); return }
         mutable.update { it.copy(requestedPlay = true) }
         startService(); setNext(); engine.play()
     }
@@ -425,14 +427,14 @@ class PlaybackProbe(private val app: ProbeApp, private val gateway: OfficialTida
         cancelTimer()
         val album = state.value.album ?: return
         mutable.update { it.copy(completed = true, index = album.tracks.lastIndex, positionMs = album.tracks.last().durationMs) }
-        pause("Als beendet markiert.",readEngine = false)
+        pause(translated("Als beendet markiert."),readEngine = false)
     }
     fun addBookmark(label: String? = null) {
         capturePosition(true)
         val s = state.value; val album = s.album ?: return; val track = album.tracks[s.index]
         val mark = StoredBookmark(UUID.randomUUID().toString(),album.id,track.id,s.positionMs,
             elapsedBookMs(album.tracks,s.index,s.positionMs),track.title,label?.trim()?.take(120)?.ifBlank { null },System.currentTimeMillis())
-        scope.launch { operation { library.write { library.dao.bookmark(mark) }.await(); notify("Lesezeichen gesetzt.") } }
+        scope.launch { operation { library.write { library.dao.bookmark(mark) }.await(); notify(translated("Lesezeichen gesetzt.")) } }
     }
     fun renameBookmark(id: String, label: String) = scope.launch { operation {
         library.write { library.dao.renameBookmark(id,label.trim().take(120).ifBlank { null }) }.await()
@@ -443,10 +445,10 @@ class PlaybackProbe(private val app: ProbeApp, private val gateway: OfficialTida
         if (state.value.busy) return@launch
         val wasPlaying = state.value.requestedPlay
         operation {
-            if (historyId == null) rememberPosition("Vor dem Stellensprung")
+            if (historyId == null) rememberPosition("Vor dem Sprung zum Lesezeichen")
             clearResumeReference()
             saveCurrentPosition(); library.flush()
-            val book = library.dao.book(bookId) ?: error("Dieses Hörbuch ist nicht mehr in der Bibliothek.")
+            val book = library.dao.book(bookId) ?: error(translated("Dieses Hörbuch ist nicht mehr in der Bibliothek."))
             val target = restoreBookPosition(book.album().tracks,trackId,positionMs)
             selectBook(book,target,wasPlaying)
             if (historyId != null) library.write { library.dao.deleteHistory(historyId) }.await()
@@ -464,14 +466,14 @@ class PlaybackProbe(private val app: ProbeApp, private val gateway: OfficialTida
     }
     fun startTimer(minutes: Int) {
         if (restoringBackup || state.value.completed) return
-        if (minutes !in 1..180) { notify("Bitte 1 bis 180 Minuten eingeben."); return }
+        if (minutes !in 1..180) { notify(translated("Bitte 1 bis 180 Minuten eingeben.")); return }
         val record = sleepAnchor(SystemClock.elapsedRealtime()+minutes*60_000L,null) ?: return
         preferences.edit().putInt("lastTimerMinutes", minutes).apply()
         mutable.update { it.copy(lastTimerMinutes = minutes) }
         resetSleepFade()
         timer.start(minutes,SystemClock.elapsedRealtime()); persistSleep(record.copy(deadlineElapsedMs = timer.deadlineMs)); setNext()
         mutable.update { it.copy(timerRemainingMs = timer.remaining(SystemClock.elapsedRealtime())) }
-        notify("Einschlaftimer: $minutes ${if (minutes == 1) "Minute" else "Minuten"}.")
+        notify(localized("Einschlaftimer: $minutes ${if (minutes == 1) "Minute" else "Minuten"}.", "Sleep timer: $minutes ${if (minutes == 1) "minute" else "minutes"}."))
     }
     fun trackEndTimer() {
         if (restoringBackup || state.value.completed) return
@@ -479,7 +481,7 @@ class PlaybackProbe(private val app: ProbeApp, private val gateway: OfficialTida
         val s = state.value; val track = s.album?.tracks?.getOrNull(s.index) ?: return
         val record = sleepAnchor(null,track.id) ?: return
         timer.endOfTrack(track.id); persistSleep(record); setNext()
-        mutable.update { it.copy(timerRemainingMs = null) }; notify("Wiedergabe endet nach diesem Track.")
+        mutable.update { it.copy(timerRemainingMs = null) }; notify(translated("Wiedergabe endet nach diesem Track."))
     }
     fun extendTimer() {
         if (restoringBackup) return
@@ -521,7 +523,7 @@ class PlaybackProbe(private val app: ProbeApp, private val gateway: OfficialTida
         }
         val target = tracks?.let { sleepResumePosition(it, s.index, s.positionMs, start) }
         // Pause before restoring gain; never briefly resume at full volume.
-        pause("Einschlaftimer beendet. Zum Weiterhören mindestens 5 Sekunden zurückgesprungen.", readEngine = false)
+        pause(translated("Einschlaftimer beendet. Zum Weiterhören mindestens 5 Sekunden zurückgesprungen."), readEngine = false)
         cancelTimer()
         if (initialized) engine.setNext(null)
         if (target != null) seek(target.index, target.positionMs, recordHistory = false)
@@ -580,7 +582,7 @@ class PlaybackProbe(private val app: ProbeApp, private val gateway: OfficialTida
     fun retryPlayback() {
         val s = state.value
         if (s.busy || !s.libraryReady || s.completed || s.album == null) return
-        if (!s.loggedIn) { notify("Bitte unter Einstellungen erneut mit TIDAL verbinden."); return }
+        if (!s.loggedIn) { notify(translated("Bitte unter Einstellungen erneut mit TIDAL verbinden.")); return }
         ensureInitialized()
         engine.pause(); engine.reset()
         pendingSeek = null; seekTarget = null
@@ -600,9 +602,9 @@ class PlaybackProbe(private val app: ProbeApp, private val gateway: OfficialTida
                     BackupCodec.decode(json)
                     requireNotNull(app.contentResolver.openOutputStream(uri, "wt")).bufferedWriter(Charsets.UTF_8).use { it.write(json) }
                 }
-                notify("Backup gespeichert: ${backup.books.size} Hörbücher und ${backup.bookmarks.size} Lesezeichen.")
+                notify(localized("Backup gespeichert: ${backup.books.size} Hörbücher und ${backup.bookmarks.size} Lesezeichen.", "Backup saved: ${backup.books.size} audiobooks and ${backup.bookmarks.size} bookmarks."))
             } catch (e: CancellationException) { throw e }
-            catch (_: Exception) { notify("Das Backup konnte nicht vollständig gespeichert werden. Bitte Speicherort und freien Speicher prüfen und erneut sichern.") }
+            catch (_: Exception) { notify(translated("Das Backup konnte nicht vollständig gespeichert werden. Bitte Speicherort und freien Speicher prüfen und erneut sichern.")) }
         }
     }
     fun restoreBackup(backup: LibraryBackup) = scope.launch {
@@ -622,9 +624,9 @@ class PlaybackProbe(private val app: ProbeApp, private val gateway: OfficialTida
                 }.apply()
                 val restoredSleep = library.dao.sleep()
                 mutable.update { it.copy(sleepSession = restoredSleep, loading = false, timerRemainingMs = null) }
-                notify("Backup wiederhergestellt. Deine Hörbücher stehen pausiert bereit.")
+                notify(translated("Backup wiederhergestellt. Deine Hörbücher stehen pausiert bereit."))
             } catch (e: CancellationException) { throw e }
-            catch (_: Exception) { notify("Wiederherstellung fehlgeschlagen. Bitte die Sicherung prüfen. Die Bibliothek wurde nicht teilweise ersetzt.") }
+            catch (_: Exception) { notify(translated("Wiederherstellung fehlgeschlagen. Bitte die Sicherung prüfen. Die Bibliothek wurde nicht teilweise ersetzt.")) }
             finally { restoringBackup = false }
         }
     }

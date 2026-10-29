@@ -48,9 +48,9 @@ class OfficialTidalGateway(private val app: Application, private val scope: Coro
     suspend fun completeAlternativeLogin(login: AlternativeAuth.DeviceLogin) = alternative.complete(login)
     suspend fun resumeAlternativeLogin() = alternative.resumePendingSession()
     suspend fun probeLegacyPlayback(trackId: String): String = withContext(Dispatchers.IO) {
-        require(trackId.matches(Regex("[0-9]+"))) { "Ungültige Track-ID." }
+        require(trackId.matches(Regex("[0-9]+"))) { translated("Ungültige Track-ID.") }
         val token = credentials.getCredentials().successData?.token
-            ?: error("Bitte erneut bei TIDAL anmelden.")
+            ?: error(translated("Bitte erneut bei TIDAL anmelden."))
         val reports = mutableListOf<String>()
         for (endpoint in listOf("playbackinfopostpaywall", "playbackinfo")) {
             val url = "https://api.tidal.com/v1/tracks/$trackId/$endpoint?audioquality=HIGH&playbackmode=STREAM&assetpresentation=FULL"
@@ -90,17 +90,17 @@ class OfficialTidalGateway(private val app: Application, private val scope: Coro
     private suspend fun json(url: String): JSONObject = withContext(Dispatchers.IO) {
         val parsed = tidalCatalogUrl(url)
         val token = credentials.getCredentials().successData?.token
-            ?: error("Anmeldung abgelaufen. Bitte erneut bei TIDAL anmelden.")
+            ?: error(translated("Anmeldung abgelaufen. Bitte erneut bei TIDAL anmelden."))
         val request = Request.Builder().url(parsed).header("Authorization", "Bearer $token")
             .header("Accept", "application/vnd.api+json").build()
         http.newCall(request).execute().use {
             if (!it.isSuccessful) throw CatalogFailure(it.code)
-            JSONObject(it.body?.string() ?: error("Leere TIDAL-Antwort."))
+            JSONObject(it.body?.string() ?: error(translated("Leere TIDAL-Antwort.")))
         }
     }
     override suspend fun album(id: String, country: String): Album {
-        require(id.matches(Regex("[0-9]+"))) { "Die TIDAL-Album-ID muss aus Ziffern bestehen." }
-        require(country.matches(Regex("[A-Z]{2}"))) { "Ländercode muss aus zwei Buchstaben bestehen." }
+        require(id.matches(Regex("[0-9]+"))) { translated("Die TIDAL-Album-ID muss aus Ziffern bestehen.") }
+        require(country.matches(Regex("[A-Z]{2}"))) { translated("Ländercode muss aus zwei Buchstaben bestehen.") }
         if (alternative.selected) return legacyAlbum(id, country)
         val root = "https://openapi.tidal.com/v2"
         val metadata = json("$root/albums/$id?countryCode=$country").getJSONObject("data").getJSONObject("attributes")
@@ -116,7 +116,7 @@ class OfficialTidalGateway(private val app: Application, private val scope: Coro
             val data = page.getJSONArray("data")
             for (i in 0 until data.length()) {
                 val link = data.getJSONObject(i)
-                check(link.getString("type") == "tracks") { "Album enthält einen Videotrack; es wird kein Teil übersprungen." }
+                check(link.getString("type") == "tracks") { translated("Album enthält einen Videotrack; es wird kein Teil übersprungen.") }
                 val trackId = link.getString("id")
                 val resource = resources["tracks:$trackId"] ?: json("$root/tracks/$trackId?countryCode=$country").getJSONObject("data")
                 val attrs = resource.getJSONObject("attributes")
@@ -128,12 +128,12 @@ class OfficialTidalGateway(private val app: Application, private val scope: Coro
             val href = when(rawNext) { is String -> rawNext; is JSONObject -> rawNext.optString("href"); else -> "" }
             next = href.takeIf { it.isNotBlank() }?.let { nextTidalCatalogPage(next!!, it) }
         }
-        check(tracks.isNotEmpty()) { "Das Album enthält keine Tracks." }
-        check(tracks.size == metadata.getInt("numberOfItems")) { "Die Trackliste ist unvollständig. Bitte erneut laden." }
+        check(tracks.isNotEmpty()) { translated("Das Album enthält keine Tracks.") }
+        check(tracks.size == metadata.getInt("numberOfItems")) { translated("Die Trackliste ist unvollständig. Bitte erneut laden.") }
         return Album(id, metadata.getString("title"), tracks.sortedWith(compareBy(Track::disc, Track::number)))
     }
     private suspend fun legacyJson(path: String): JSONObject = withContext(Dispatchers.IO) {
-        val token = credentials.getCredentials().successData?.token ?: error("Bitte erneut anmelden.")
+        val token = credentials.getCredentials().successData?.token ?: error(translated("Bitte erneut anmelden."))
         require(path.startsWith("albums/") && !path.contains(".."))
         val request = Request.Builder().url("https://api.tidal.com/v1/$path")
             .header("Authorization", "Bearer $token").build()
@@ -144,13 +144,13 @@ class OfficialTidalGateway(private val app: Application, private val scope: Coro
     }
     private suspend fun legacyAlbum(id: String, country: String): Album {
         val metadata = legacyJson("albums/$id?countryCode=$country")
-        check(metadata.optInt("numberOfVideos") == 0) { "Album enthält Videos; es werden keine Teile übersprungen." }
+        check(metadata.optInt("numberOfVideos") == 0) { translated("Album enthält Videos; es werden keine Teile übersprungen.") }
         val tracks = mutableListOf<Track>()
         var offset = 0
         do {
             val page = legacyJson("albums/$id/tracks?limit=100&offset=$offset&countryCode=$country")
             val items = page.getJSONArray("items")
-            check(items.length() > 0 || offset == page.getInt("totalNumberOfItems")) { "Unvollständige TIDAL-Trackliste." }
+            check(items.length() > 0 || offset == page.getInt("totalNumberOfItems")) { translated("Unvollständige TIDAL-Trackliste.") }
             for (i in 0 until items.length()) {
                 val track = items.getJSONObject(i)
                 tracks += Track(track.get("id").toString(), track.getString("title"), track.getLong("duration")*1000,
@@ -158,7 +158,7 @@ class OfficialTidalGateway(private val app: Application, private val scope: Coro
             }
             offset += items.length()
         } while (offset < page.getInt("totalNumberOfItems"))
-        check(tracks.isNotEmpty() && tracks.size == metadata.getInt("numberOfTracks")) { "Unvollständige TIDAL-Trackliste." }
+        check(tracks.isNotEmpty() && tracks.size == metadata.getInt("numberOfTracks")) { translated("Unvollständige TIDAL-Trackliste.") }
         val author = metadata.optJSONArray("artists")?.let { artists ->
             (0 until artists.length()).map { artists.getJSONObject(it).optString("name") }.filter(String::isNotBlank).distinct().joinToString(", ")
         }.orEmpty().ifBlank { metadata.optJSONObject("artist")?.optString("name").orEmpty() }

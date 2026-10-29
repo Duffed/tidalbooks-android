@@ -9,7 +9,7 @@ internal data class WidgetSnapshot(
     companion object {
         fun from(s: ProbeState): WidgetSnapshot {
             val book = s.album
-            return WidgetSnapshot(book?.title ?: "Hörbuch auswählen",book?.coverUrl,book != null,s.completed,
+            return WidgetSnapshot(book?.title ?: translated("Hörbuch auswählen"),book?.coverUrl,book != null,s.completed,
                 s.requestedPlay && !s.completed,s.index+1,book?.tracks?.size ?: 0,
                 if (book != null) elapsedBookMs(book.tracks,s.index,s.positionMs)/15_000*15_000 else 0,
                 book?.tracks?.sumOf { it.durationMs } ?: 0,s.sleepSession?.active == true,

@@ -153,7 +153,7 @@ internal fun ExpandablePlayer(
                 .testTag("expandable_player")
                 .nestedScroll(nestedScroll)
                 .then(dragModifier),
-            shape = RoundedCornerShape(24.dp * (1f - p)),
+            shape = RoundedCornerShape((if (LocalTidalDesign.current) 6.dp else 24.dp) * (1f - p)),
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
         ) {
             Box {

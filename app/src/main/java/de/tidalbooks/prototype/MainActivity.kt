@@ -9,6 +9,7 @@ import androidx.compose.runtime.*
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 class MainActivity : ComponentActivity() {
+    override fun attachBaseContext(newBase: android.content.Context) { super.attachBaseContext(AppLanguage.wrap(newBase)) }
     private val playback get() = (application as ProbeApp).probe
     private var sharedInput by mutableStateOf("")
     private var shareNonce by mutableIntStateOf(0)

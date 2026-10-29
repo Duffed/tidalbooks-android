@@ -60,7 +60,7 @@ class AlternativeAuth(context: Context) : CredentialsProvider {
         val encrypted = cipher.doFinal(session.toString().toByteArray(Charsets.UTF_8))
         val envelope = JSONObject().put("iv", Base64.encodeToString(cipher.iv, Base64.NO_WRAP))
             .put("data", Base64.encodeToString(encrypted, Base64.NO_WRAP))
-        check(preferences.edit().putString("session", envelope.toString()).commit()) { "Anmeldung konnte nicht sicher gespeichert werden." }
+        check(preferences.edit().putString("session", envelope.toString()).commit()) { translated("Anmeldung konnte nicht sicher gespeichert werden.") }
     }
     private fun verifySecureStorage() {
         // Check the actual device keystore before requesting any account authorization.
@@ -107,11 +107,11 @@ class AlternativeAuth(context: Context) : CredentialsProvider {
     suspend fun begin(): DeviceLogin {
         withContext(Dispatchers.IO) { verifySecureStorage() }
         val (status, data) = post("device_authorization", mapOf("client_id" to AlternativeClientProfile.CLIENT_ID, "scope" to "r_usr"))
-        check(status == 200 && data.optString("deviceCode").isNotBlank()) { "Alternative Geräteanmeldung nicht verfügbar (HTTP $status)." }
+        check(status == 200 && data.optString("deviceCode").isNotBlank()) { localized("Alternative Geräteanmeldung nicht verfügbar (HTTP $status).", "Device sign-in is unavailable (HTTP $status).") }
         val raw = data.optString("verificationUriComplete").ifBlank { data.getString("verificationUri") }
         val url = if (raw.startsWith("https://")) raw else "https://$raw"
         val parsed = url.toHttpUrl()
-        check(parsed.isHttps && parsed.host in setOf("link.tidal.com", "login.tidal.com", "tidal.com")) { "Unerwartete TIDAL-Anmeldeseite." }
+        check(parsed.isHttps && parsed.host in setOf("link.tidal.com", "login.tidal.com", "tidal.com")) { translated("Unerwartete TIDAL-Anmeldeseite.") }
         return DeviceLogin(data.getString("deviceCode"), data.getString("userCode"), url,
             data.optLong("interval", 5).coerceIn(2, 30), data.optLong("expiresIn", 300).coerceIn(30, 900))
     }
@@ -144,11 +144,11 @@ class AlternativeAuth(context: Context) : CredentialsProvider {
                 DeviceLoginDecision.WAIT -> Unit
                 DeviceLoginDecision.SLOW_DOWN -> interval = (interval+5).coerceAtMost(30)
                 DeviceLoginDecision.FAIL -> {
-                    error("Alternative Anmeldung nicht abgeschlossen (HTTP $status). Bitte erneut starten.")
+                    error(localized("Alternative Anmeldung nicht abgeschlossen (HTTP $status). Bitte erneut starten.", "Sign-in was not completed (HTTP $status). Please start again."))
                 }
             }
         }
-        error("Der Anmeldecode ist abgelaufen. Bitte erneut starten.")
+        error(translated("Der Anmeldecode ist abgelaufen. Bitte erneut starten."))
     }
     suspend fun resumePendingSession(): Boolean {
         if (selected) return isUserLoggedIn()
@@ -163,7 +163,7 @@ class AlternativeAuth(context: Context) : CredentialsProvider {
             try { confirmUser(data); confirmed = true; break }
             catch (e: IOException) { if (attempt == 2) throw e; delay(2000) }
         }
-        check(confirmed) { "Die alternative Benutzersitzung konnte noch nicht bestätigt werden." }
+        check(confirmed) { translated("Die alternative Benutzersitzung konnte noch nicht bestätigt werden.") }
         withContext(Dispatchers.IO) { save(data) }
         selected = true
         bus.emit(CredentialsUpdatedMessage(credentials(data)))
@@ -179,10 +179,10 @@ class AlternativeAuth(context: Context) : CredentialsProvider {
         val request = Request.Builder().url("https://api.tidal.com/v1/sessions")
             .header("Authorization", "Bearer ${data.getString("access_token")}").build()
         http.newCall(request).execute().use { response ->
-            check(response.isSuccessful) { "Alternative Sitzung konnte nicht bestätigt werden (HTTP ${response.code})." }
+            check(response.isSuccessful) { localized("Alternative Sitzung konnte nicht bestätigt werden (HTTP ${response.code}).", "The session could not be confirmed (HTTP ${response.code}).") }
             val session = JSONObject(response.body?.string() ?: "{}")
             val userId = session.optString("userId")
-            check(userId.isNotBlank() && userId != "null") { "TIDAL hat keine Benutzersitzung bestätigt." }
+            check(userId.isNotBlank() && userId != "null") { translated("TIDAL hat keine Benutzersitzung bestätigt.") }
             data.put("user_id", userId)
             data.put("country_code", session.optString("countryCode"))
         }
