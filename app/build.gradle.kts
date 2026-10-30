@@ -6,28 +6,45 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.devtools.ksp")
 }
-val local = Properties().apply {
-    rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) }
-}
+
+val local =
+    Properties().apply {
+        rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) }
+    }
+
 fun quoted(value: String) = "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
+
 val separateApp = providers.gradleProperty("separateApp").map(String::toBoolean).getOrElse(false)
-val freshInstallCheck = providers.gradleProperty("freshInstallCheck").map(String::toBoolean).getOrElse(false)
+val freshInstallCheck =
+    providers.gradleProperty("freshInstallCheck").map(String::toBoolean).getOrElse(false)
+
 android {
     namespace = "de.tidalbooks.prototype"
     compileSdk = 35
     defaultConfig {
-        applicationId = if (freshInstallCheck) "de.tidalbooks.prototype.firststart" else if (separateApp) "de.tidalbooks.prototype.testapp" else "de.tidalbooks.prototype"
-        manifestPlaceholders["appLabel"] = if (freshInstallCheck) "TIDAL Books Erststart" else if (separateApp) "TIDAL Books Test" else "@string/app_name"
+        applicationId =
+            if (freshInstallCheck) "de.tidalbooks.prototype.firststart"
+            else if (separateApp) "de.tidalbooks.prototype.testapp" else "de.tidalbooks.prototype"
+        manifestPlaceholders["appLabel"] =
+            if (freshInstallCheck) "TIDAL Books Erststart"
+            else if (separateApp) "TIDAL Books Test" else "@string/app_name"
         minSdk = 26
         targetSdk = 35
         versionCode = 23
         versionName = if (separateApp || freshInstallCheck) "0.5.0-beta4-test" else "0.5.0-beta4"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "TIDAL_CLIENT_ID", quoted(local.getProperty("tidal.clientId", "WE3EnCGIVO57t7U0")))
+        buildConfigField(
+            "String",
+            "TIDAL_CLIENT_ID",
+            quoted(local.getProperty("tidal.clientId", "WE3EnCGIVO57t7U0")),
+        )
         buildConfigField("String", "TIDAL_SCOPES", quoted(local.getProperty("tidal.scopes", "")))
     }
     sourceSets.getByName("androidTest").assets.srcDir("$projectDir/schemas")
-    buildFeatures { compose = true; buildConfig = true }
+    buildFeatures {
+        compose = true
+        buildConfig = true
+    }
     // Both languages must remain available when switched offline, including in future bundles.
     bundle { language { enableSplit = false } }
     local.getProperty("debug.storeFile")?.let { debugStore ->
@@ -38,17 +55,20 @@ android {
             keyPassword = "android"
         }
     }
-    compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
     buildTypes.getByName("release") {
         // Same separately stored certificate as existing installs; never distribute the key.
         signingConfig = signingConfigs.getByName("debug")
         isMinifyEnabled = false
     }
 }
+
 kotlin { compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) } }
+
 dependencies {
-
-
     implementation(platform("androidx.compose:compose-bom:2025.10.01"))
     implementation("androidx.activity:activity-compose:1.9.3")
     implementation("androidx.compose.material3:material3:1.5.0-alpha01")
@@ -75,4 +95,5 @@ dependencies {
     androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
+
 ksp { arg("room.schemaLocation", "$projectDir/schemas") }

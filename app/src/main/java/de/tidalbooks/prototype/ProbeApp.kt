@@ -11,6 +11,7 @@ class ProbeApp : Application() {
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     val gateway by lazy { OfficialTidalGateway(this, scope) }
     val probe by lazy { PlaybackProbe(this, gateway, scope) }
+
     override fun onCreate() {
         super.onCreate()
         AppLanguage.initialize(this)
@@ -19,6 +20,7 @@ class ProbeApp : Application() {
             runCatching { TrueTime().initialize() }
         }
     }
+
     override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
         super.onConfigurationChanged(newConfig)
         AppLanguage.initialize(this)

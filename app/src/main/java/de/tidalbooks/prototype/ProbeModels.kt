@@ -2,8 +2,22 @@ package de.tidalbooks.prototype
 
 import java.net.URI
 
-data class Track(val id: String, val title: String, val durationMs: Long, val disc: Int, val number: Int)
-data class Album(val id: String, val title: String, val tracks: List<Track>, val author: String = "", val coverUrl: String? = null)
+data class Track(
+    val id: String,
+    val title: String,
+    val durationMs: Long,
+    val disc: Int,
+    val number: Int,
+)
+
+data class Album(
+    val id: String,
+    val title: String,
+    val tracks: List<Track>,
+    val author: String = "",
+    val coverUrl: String? = null,
+)
+
 data class ProbeState(
     val loggedIn: Boolean = false,
     val busy: Boolean = false,
@@ -34,7 +48,6 @@ data class ProbeState(
     val skipSeconds: Int = 30,
     val lastTimerMinutes: Int = 30,
     val playbackProblem: String? = null,
-
 ) {
     val showPlaybackWave: Boolean
         get() = requestedPlay && playing && !loading && playbackProblem == null && !completed
@@ -42,30 +55,56 @@ data class ProbeState(
 
 fun albumId(input: String): String {
     val value = input.trim()
+
     if (value.matches(Regex("[0-9]+"))) return value
+
     val uri = runCatching { URI(value) }.getOrNull()
-    require(uri != null && uri.scheme == "https" && uri.host in setOf("tidal.com", "www.tidal.com", "listen.tidal.com")) {
+
+    require(
+        uri != null &&
+            uri.scheme == "https" &&
+            uri.host in setOf("tidal.com", "www.tidal.com", "listen.tidal.com")
+    ) {
         translated("Bitte einen TIDAL-Albumlink oder eine numerische Album-ID eingeben.")
     }
+
     return Regex("/(?:browse/)?album/([0-9]+)(?:/|$)").find(uri.path)?.groupValues?.get(1)
         ?: throw IllegalArgumentException(translated("Der Link muss auf ein Album zeigen."))
 }
 
-/** All deadlines use elapsedRealtime, never the adjustable wall clock. */
 class SleepDeadline {
     var deadlineMs: Long? = null
         private set
+
     var endTrackId: String? = null
         private set
+
     fun start(minutes: Int, nowMs: Long) {
         require(minutes in 1..180)
         deadlineMs = nowMs + minutes * 60_000L
         endTrackId = null
     }
-    fun endOfTrack(id: String) { deadlineMs = null; endTrackId = id }
-    fun restore(deadlineMs: Long?, endTrackId: String?) { this.deadlineMs = deadlineMs; this.endTrackId = endTrackId }
+
+    fun endOfTrack(id: String) {
+        deadlineMs = null
+        endTrackId = id
+    }
+
+    fun restore(deadlineMs: Long?, endTrackId: String?) {
+        this.deadlineMs = deadlineMs
+        this.endTrackId = endTrackId
+    }
+
     fun remaining(nowMs: Long): Long? = deadlineMs?.let { (it - nowMs).coerceAtLeast(0) }
+
     fun expired(nowMs: Long) = deadlineMs?.let { nowMs >= it } ?: false
-    fun extend() { deadlineMs = deadlineMs?.plus(600_000) }
-    fun cancel() { deadlineMs = null; endTrackId = null }
+
+    fun extend() {
+        deadlineMs = deadlineMs?.plus(600_000)
+    }
+
+    fun cancel() {
+        deadlineMs = null
+        endTrackId = null
+    }
 }

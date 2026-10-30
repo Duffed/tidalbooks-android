@@ -15,13 +15,33 @@ import org.junit.Test
 
 class EnglishUiTest {
     @get:Rule val compose = createComposeRule()
-    @After fun restoreLanguage() { compose.runOnIdle { AppLanguage.initialize(ApplicationProvider.getApplicationContext()) } }
 
-    @Test fun languageSwitchRecomposesFiltersWithoutChangingTheirMeaningOrTitles() {
-        val books = listOf(LibraryBook("1", "Angefangen", "Anna", null, 60000, 10000, false, 1),
-            LibraryBook("2", "Finished", "Berta", null, 60000, 60000, true, 2))
+    @After
+    fun restoreLanguage() {
+        compose.runOnIdle { AppLanguage.initialize(ApplicationProvider.getApplicationContext()) }
+    }
+
+    @Test
+    fun languageSwitchRecomposesFiltersWithoutChangingTheirMeaningOrTitles() {
+        val books =
+            listOf(
+                LibraryBook("1", "Angefangen", "Anna", null, 60000, 10000, false, 1),
+                LibraryBook("2", "Finished", "Berta", null, 60000, 60000, true, 2),
+            )
+
         compose.runOnIdle { AppLanguage.configure(LanguageChoice.GERMAN) }
-        compose.setContent { MaterialTheme { LibraryScreen(ProbeState(books = books, libraryReady = true), Modifier, { _, _ -> }, {}, {}, {}) } }
+        compose.setContent {
+            MaterialTheme {
+                LibraryScreen(
+                    ProbeState(books = books, libraryReady = true),
+                    Modifier,
+                    { _, _ -> },
+                    {},
+                    {},
+                    {},
+                )
+            }
+        }
         compose.onNode(hasText("Beendet") and isSelectable()).performClick()
         compose.runOnIdle { AppLanguage.configure(LanguageChoice.ENGLISH) }
         compose.onNode(hasText("Finished") and isSelectable()).assertIsSelected()
@@ -33,7 +53,8 @@ class EnglishUiTest {
         compose.onNode(hasText("Alle") and isSelectable()).assertIsSelected()
     }
 
-    @Test fun englishOnboardingAndNativeWidgetsUseTranslatedControls() {
+    @Test
+    fun englishOnboardingAndNativeWidgetsUseTranslatedControls() {
         compose.runOnIdle { AppLanguage.configure(LanguageChoice.ENGLISH) }
         compose.setContent { MaterialTheme { GettingStartedCard(false, {}, {}) } }
         compose.onNodeWithText("Your first audiobook").assertExists()
@@ -41,11 +62,24 @@ class EnglishUiTest {
         compose.runOnIdle {
             val context = ApplicationProvider.getApplicationContext<Context>()
             val snapshot = WidgetSnapshot.from(ProbeState())
+
             for (tidal in listOf(false, true)) {
-                val view = AudiobookWidget.views(context, snapshot, tidal).apply(context, FrameLayout(context))
-                assertEquals("Choose an audiobook", view.findViewById<TextView>(R.id.widget_title).text.toString())
-                assertEquals("Bookmark", view.findViewById<TextView>(R.id.widget_mark_label).text.toString())
-                assertEquals("Play", view.findViewById<TextView>(R.id.widget_play_label).text.toString())
+                val view =
+                    AudiobookWidget.views(context, snapshot, tidal)
+                        .apply(context, FrameLayout(context))
+
+                assertEquals(
+                    "Choose an audiobook",
+                    view.findViewById<TextView>(R.id.widget_title).text.toString(),
+                )
+                assertEquals(
+                    "Bookmark",
+                    view.findViewById<TextView>(R.id.widget_mark_label).text.toString(),
+                )
+                assertEquals(
+                    "Play",
+                    view.findViewById<TextView>(R.id.widget_play_label).text.toString(),
+                )
             }
         }
     }
