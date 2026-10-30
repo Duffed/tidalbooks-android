@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">TIDAL Books</string>
+    <string name="playback_channel">Audiobook playback</string>
+    <string name="widget_name">TIDAL Books – Controls</string>
+    <string name="widget_description">Resume audiobooks, save bookmarks and control the sleep timer.</string>
+    <string name="widget_title">Your audiobook</string>
+    <string name="widget_subtitle">Tap to open your library</string>
+    <string name="widget_back">−30 s</string>
+    <string name="widget_mark">Bookmark</string>
+    <string name="widget_start">Play</string>
+    <string name="widget_timer">30 min</string>
+    <string name="widget_bookmark">Add bookmark</string>
+    <string name="widget_rewind">Back 30 seconds</string>
+    <string name="widget_options">Widget options</string>
+</resources>

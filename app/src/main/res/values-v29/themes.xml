@@ -1,0 +1,6 @@
+<resources>
+    <style name="Theme.Hoerbuch" parent="android:style/Theme.Material.NoActionBar">
+        <!-- Compose liefert eigene helle/dunkle Farben; keine zweite Systemumfärbung. -->
+        <item name="android:forceDarkAllowed">false</item>
+    </style>
+</resources>

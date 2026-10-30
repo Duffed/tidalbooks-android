@@ -1,0 +1,14 @@
+.gradle/
+.kotlin/
+**/build/
+local.properties
+*.jks
+*.keystore
+.idea/
+*.apk
+*.aab
+distribution/*.zip
+TIDAL-Hoerbuch-Buildschluessel.zip
+.env
+.env.*
+.DS_Store
