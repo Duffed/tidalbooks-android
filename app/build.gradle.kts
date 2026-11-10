@@ -30,8 +30,8 @@ android {
             else if (separateApp) "TIDAL Books Test" else "@string/app_name"
         minSdk = 26
         targetSdk = 35
-        versionCode = 23
-        versionName = if (separateApp || freshInstallCheck) "0.5.0-beta4-test" else "0.5.0-beta4"
+        versionCode = 24
+        versionName = if (separateApp || freshInstallCheck) "0.5.0-beta5-test" else "0.5.0-beta5"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField(
             "String",

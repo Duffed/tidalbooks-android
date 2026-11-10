@@ -14,7 +14,7 @@ An unofficial Android app for listening to audiobook albums on TIDAL. Requires A
 
 Download the APK from [Releases](https://github.com/Duffed/tidalbooks-releases/releases). In Settings, connect your TIDAL account and confirm the device code on TIDAL's website. Return to the app, then paste an album link or share an album from TIDAL to TIDAL Books.
 
-Listening progress is saved automatically. The app resumes at your saved position without starting playback automatically. Audio downloads, playback speed adjustment, and library sync are not supported.
+Listening progress is saved automatically. The app resumes at your saved position without starting playback automatically. The speed button beside Whole book / Chapter offers 0.5x to 2x and remembers your choice across books and app restarts. Audio downloads and library sync are not supported.
 
 ## Build
 

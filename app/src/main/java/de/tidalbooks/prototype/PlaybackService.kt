@@ -326,6 +326,7 @@ private class BookMediaPlayer(private val playback: PlaybackProbe) :
             .setPlayWhenReady(s.requestedPlay, Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST)
             .setSeekBackIncrementMs(s.skipSeconds * 1000L)
             .setSeekForwardIncrementMs(s.skipSeconds * 1000L)
+            .setPlaybackParameters(androidx.media3.common.PlaybackParameters(s.playbackSpeed))
             .setContentPositionMs(s.positionMs)
             .build()
     }

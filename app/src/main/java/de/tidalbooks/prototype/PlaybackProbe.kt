@@ -31,6 +31,12 @@ class PlaybackProbe(
     private val engine
         get() = player.playbackEngine
 
+    private val speedAdapter by lazy { TidalPlaybackSpeed(engine) {
+        scope.launch {
+            mutable.update { it.copy(playbackSpeed = 1f, speedAvailable = false) }
+            notify(localized("Die Wiedergabegeschwindigkeit ist derzeit nicht verfügbar.", "Playback speed is currently unavailable."))
+        }
+    } }
     private val timer = SleepDeadline()
     private var fadeCheckpoint: ProbeState? = null
     private val sleepVolume by lazy {
@@ -75,6 +81,7 @@ class PlaybackProbe(
                     preferences.getInt("resumeSeconds", 0).takeIf { v ->
                         v in listOf(0, 5, 10, 15, 30)
                     } ?: 0,
+                playbackSpeed = validPlaybackSpeed(preferences.getFloat("playbackSpeed", 1f)),
                 skipSeconds =
                     preferences.getInt("skipSeconds", 30).takeIf { it in listOf(5, 15, 30, 60) }
                         ?: 30,
@@ -420,15 +427,24 @@ class PlaybackProbe(
         }
     }
 
+    fun setPlaybackSpeed(speed: Float) {
+        if (speed !in playbackSpeeds || !state.value.speedAvailable) return
+        preferences.edit().putFloat("playbackSpeed", speed).apply()
+        mutable.update { it.copy(playbackSpeed = speed) }
+        if (initialized) speedAdapter.apply(speed)
+    }
+
     private fun ensureInitialized() {
         if (initialized) return
 
         engine.setRepeatOne(false)
         initialized = true
+        speedAdapter.apply(state.value.playbackSpeed)
         scope.launch {
             engine.events.collect { event ->
                 when (event) {
                     is Event.MediaProductTransition -> {
+                        speedAdapter.apply(state.value.playbackSpeed)
                         val album = state.value.album ?: return@collect
                         val index =
                             album.tracks.indexOfFirst { it.id == event.mediaProduct.productId }
@@ -592,6 +608,7 @@ class PlaybackProbe(
         var playing = false
 
         if (initialized && state.value.album != null) {
+            speedAdapter.apply(state.value.playbackSpeed)
             playing = engine.playbackState == PlaybackState.PLAYING
             if (playing && !lastPlaying) noteHeard()
 
@@ -696,6 +713,7 @@ class PlaybackProbe(
         }
 
         engine.load(MediaProduct(ProductType.TRACK, track.id))
+        speedAdapter.apply(state.value.playbackSpeed)
         setNext()
         if (play) {
             startService()

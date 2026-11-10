@@ -236,6 +236,7 @@ fun LibraryApp(
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     },
                     onTimer = { sheet = "timer" },
+                    onSpeed = playback::setPlaybackSpeed,
                     onChapters = { sheet = "chapters" },
                     onMarks = { sheet = "marks" },
                     onFinished = playback::markCompleted,
@@ -985,6 +986,7 @@ internal fun PlayerScreen(
     onUndo: () -> Unit,
     onRetry: () -> Unit,
     snackbar: SnackbarHostState,
+    onSpeed: (Float) -> Unit = {},
 ) {
     val album = s.album ?: return
     val total = album.tracks.sumOf { it.durationMs }
@@ -1210,17 +1212,24 @@ internal fun PlayerScreen(
                         Row(
                             Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            FilterChip(
-                                selected = !chapterMode,
-                                onClick = { chapterMode = false },
-                                label = { Text(translated("Ganzes Buch")) },
-                            )
-                            FilterChip(
-                                selected = chapterMode,
-                                onClick = { chapterMode = true },
-                                label = { Text(localized("Kapitel", "Chapter")) },
-                            )
+                            FlowRow(
+                                Modifier.weight(1f),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                FilterChip(
+                                    selected = !chapterMode,
+                                    onClick = { chapterMode = false },
+                                    label = { Text(translated("Ganzes Buch")) },
+                                )
+                                FilterChip(
+                                    selected = chapterMode,
+                                    onClick = { chapterMode = true },
+                                    label = { Text(localized("Kapitel", "Chapter")) },
+                                )
+                            }
+                            PlaybackSpeedButton(s.playbackSpeed, s.speedAvailable, onSpeed)
                         }
                         ExpressiveSeekBar(
                             playing = s.showPlaybackWave,
